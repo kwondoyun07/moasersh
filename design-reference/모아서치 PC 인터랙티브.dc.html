@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css">
+<style>
+  html,body{margin:0}
+  *{box-sizing:border-box}
+  input::placeholder{color:#8E897E}
+  ::-webkit-scrollbar{height:11px;width:11px}
+  ::-webkit-scrollbar-thumb{background:#c4c9cf;border-radius:7px;border:3px solid #E9EBEE}
+  ::-webkit-scrollbar-track{background:transparent}
+  .rng{-webkit-appearance:none;appearance:none;position:absolute;left:0;width:100%;height:18px;background:transparent;pointer-events:none;margin:0;padding:0}
+  .rng::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:#14110A;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);cursor:pointer;pointer-events:auto}
+  .rng::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#14110A;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);cursor:pointer;pointer-events:auto}
+</style>
+</helmet>
+
+<div style="font-family:'Pretendard Variable',Pretendard,-apple-system,system-ui,sans-serif;min-height:100vh;padding:48px;background:#E9EBEE;color:#14110A;display:flex;justify-content:center">
+  <div style="width:1440px">
+    <div style="font-weight:600;font-size:12px;color:#8B95A1;margin:0 0 10px 4px">모아서치 · 인터랙티브 프로토타입 — 모든 버튼 동작</div>
+    <div style="position:relative;border-radius:16px;overflow:hidden;box-shadow:0 16px 48px rgba(17,24,39,.16);background:#fff;min-height:900px">
+
+      <!-- browser chrome -->
+      <div style="height:44px;background:#F4F4F2;display:flex;align-items:center;gap:8px;padding:0 18px;border-bottom:1px solid #ECECEA;position:relative;z-index:6">
+        <div style="width:12px;height:12px;border-radius:50%;background:#FF5F57"></div>
+        <div style="width:12px;height:12px;border-radius:50%;background:#FEBC2E"></div>
+        <div style="width:12px;height:12px;border-radius:50%;background:#28C840"></div>
+        <div style="margin-left:16px;height:26px;flex:1;max-width:520px;background:#fff;border-radius:8px;display:flex;align-items:center;padding:0 12px;font-weight:500;font-size:12px;color:#8B95A1">moa-search.app</div>
+      </div>
+
+      <!-- header (persistent) -->
+      <header style="display:flex;align-items:center;gap:30px;padding:18px 56px;border-bottom:1px solid #F0F0EE;position:relative;z-index:6;background:#fff">
+        <div onClick="{{ goHome }}" style="font-weight:800;font-size:22px;letter-spacing:-.03em;cursor:pointer">모아<span style="color:#E5A600">서치</span></div>
+        <nav style="display:flex;gap:26px;font-weight:600;font-size:15px;color:#6B7684">
+          <span onClick="{{ goHome }}" style="cursor:pointer;color:#14110A">통합검색</span>
+          <span onClick="{{ goPriceAlerts }}" style="cursor:pointer">가격알림</span>
+          <span onClick="{{ goWishlist }}" style="cursor:pointer">관심목록</span>
+        </nav>
+        <sc-if value="{{ isResults }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:1;max-width:540px;display:flex;align-items:center;height:48px;background:#F4F5F7;border-radius:13px;padding:0 8px 0 16px;gap:10px">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B95A1" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><line x1="20" y1="20" x2="16.5" y2="16.5"></line></svg>
+            <input value="{{ searchValue }}" onChange="{{ onSearchInput }}" onKeyDown="{{ onSearchKey }}" placeholder="검색어를 입력하세요" style="flex:1;border:0;background:transparent;outline:none;font-weight:600;font-size:15px;color:#14110A;font-family:inherit" />
+            <button onClick="{{ submitSearch }}" style="width:34px;height:34px;border:0;border-radius:9px;background:#14110A;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#F5C84C" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><line x1="20" y1="20" x2="16.5" y2="16.5"></line></svg></button>
+          </div>
+        </sc-if>
+        <div style="display:flex;align-items:center;gap:14px;margin-left:auto">
+          <button onClick="{{ toggleNotif }}" style="position:relative;width:42px;height:42px;border:0;border-radius:50%;background:#F4F5F7;display:flex;align-items:center;justify-content:center;cursor:pointer">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#4E5968" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 4 1.5 5 2 5.5H4c.5-.5 2-1.5 2-5.5Z"></path><path d="M10 19a2 2 0 0 0 4 0"></path></svg>
+            <sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;top:9px;right:10px;width:9px;height:9px;border-radius:50%;background:#E8453C;border:1.5px solid #fff"></span></sc-if>
+          </button>
+          <sc-if value="{{ loggedOut }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ openLogin }}" style="height:42px;padding:0 20px;border:0;border-radius:11px;background:#14110A;color:#fff;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit">로그인</button>
+          </sc-if>
+          <sc-if value="{{ loggedIn }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ toggleProfile }}" style="width:42px;height:42px;border:0;border-radius:50%;background:linear-gradient(135deg,#F5C84C,#E5A600);color:#14110A;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center">{{ userInitial }}</button>
+          </sc-if>
+        </div>
+      </header>
+
+      <!-- ============ HOME ============ -->
+      <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <section style="padding:72px 56px 56px;display:flex;gap:72px;align-items:center">
+            <div style="flex:1">
+              <h1 style="font-weight:800;font-size:60px;line-height:1.06;letter-spacing:-.045em;margin:0">중고 5곳을,<br><span style="background:#F5C84C;padding:0 12px;border-radius:8px;-webkit-box-decoration-break:clone;box-decoration-break:clone">한 번에 모아서.</span></h1>
+              <p style="font-weight:500;font-size:18px;color:#6B7684;margin:24px 0 0;line-height:1.5">당근 · 번개장터 · 중고나라 · 헬로마켓 · 세컨웨어를<br>한 번의 검색으로 모아 봅니다.</p>
+              <div style="display:flex;align-items:center;height:70px;background:#14110A;border-radius:18px;padding:0 8px 0 26px;margin-top:34px;max-width:580px">
+                <input value="{{ searchValue }}" onChange="{{ onSearchInput }}" onKeyDown="{{ onSearchKey }}" placeholder="찾는 물건을 검색해 보세요" style="flex:1;border:0;background:transparent;outline:none;font-weight:500;font-size:17px;color:#fff;font-family:inherit" />
+                <button onClick="{{ submitSearch }}" style="width:54px;height:54px;border:0;border-radius:13px;background:#F5C84C;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#14110A" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><line x1="20" y1="20" x2="16.5" y2="16.5"></line></svg></button>
+              </div>
+              <div style="margin-top:26px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;max-width:520px">
+                  <span style="font-weight:700;font-size:13px;color:#8B95A1">검색할 마켓을 선택하세요</span>
+                  <span onClick="{{ toggleAllMarkets }}" style="font-weight:700;font-size:13px;color:#14110A;cursor:pointer">{{ allMarketsLabel }}</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+                  <sc-for list="{{ marketsDisplay }}" as="m" hint-placeholder-count="5">
+                    <span onClick="{{ m.onChip }}" style="display:inline-flex;align-items:center;padding:10px 15px;border-radius:11px;font-weight:700;font-size:14px;cursor:pointer;transition:background .12s,color .12s;{{ m.chipStyle }}">{{ m.label }}</span>
+                  </sc-for>
+                </div>
+                <div onClick="{{ onToggleSave }}" style="display:inline-flex;align-items:center;gap:9px;margin-top:18px;cursor:pointer;user-select:none">
+                  <div style="width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;transition:background .12s;{{ saveBoxStyle }}">
+                    <sc-if value="{{ saveFilter }}" hint-placeholder-val="{{ false }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F5C84C" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"></polyline></svg></sc-if>
+                  </div>
+                  <span style="font-weight:600;font-size:13.5px;color:#6B7684">이 마켓 선택 기억하기</span>
+                </div>
+              </div>
+            </div>
+            <div style="flex:none;width:440px;height:400px;position:relative">
+              <div style="position:absolute;inset:0;background:#F5C84C;border-radius:30px"></div>
+              <div style="position:absolute;left:36px;top:44px;width:236px;background:#fff;border-radius:18px;padding:13px;box-shadow:0 22px 46px rgba(20,17,10,.20)">
+                <div style="height:150px;border-radius:12px;background:linear-gradient(135deg,#E2E6EA,#C9D0D7)"></div>
+                <div style="display:flex;align-items:center;gap:6px;margin:11px 0 6px"><span style="padding:3px 8px;border-radius:6px;font-weight:700;font-size:11px;background:#FFF0E6;color:#FF6600">당근</span><span style="font-weight:500;font-size:11px;color:#8B95A1">역삼동 · 3분 전</span></div>
+                <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">아이폰 15 Pro 256 자연티탄</div>
+                <div style="font-weight:800;font-size:18px;margin-top:3px">1,150,000원</div>
+              </div>
+              <div style="position:absolute;right:30px;bottom:40px;width:212px;background:#14110A;color:#fff;border-radius:18px;padding:18px;box-shadow:0 22px 46px rgba(20,17,10,.28)">
+                <div style="font-weight:800;font-size:44px;letter-spacing:-.03em;line-height:1">1,284<span style="font-size:18px;font-weight:700">건</span></div>
+                <div style="font-weight:500;font-size:13px;color:#A8A399;margin-top:6px;line-height:1.4">5개 마켓의 매물을<br>한 화면에 모았어요</div>
+                <div style="display:flex;gap:5px;margin-top:14px">
+                  <sc-for list="{{ marketsDisplay }}" as="m" hint-placeholder-count="5"><span style="width:9px;height:9px;border-radius:50%;background:{{ m.dot }}"></span></sc-for>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section style="padding:8px 56px 68px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:26px">
+              <h2 style="font-weight:800;font-size:27px;letter-spacing:-.025em;margin:0">지금 뜨는 매물</h2>
+              <span onClick="{{ goResults }}" style="font-weight:700;font-size:14px;color:#8B95A1;cursor:pointer">전체보기 ›</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:24px">
+              <sc-for list="{{ trendingList }}" as="item" hint-placeholder-count="4">
+                <div onClick="{{ item.onOpen }}" style="cursor:pointer">
+                  <div style="height:206px;border-radius:14px;background:{{ item.thumb }}"></div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin:13px 0 7px"><span style="padding:3px 8px;border-radius:6px;font-weight:700;font-size:11px;background:{{ item.badgeBg }};color:{{ item.badgeFg }}">{{ item.badge }}</span><span style="font-weight:500;font-size:12px;color:#B0B8C1">{{ item.location }} · {{ item.postedAt }}</span></div>
+                  <div style="font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ item.title }}</div>
+                  <div style="font-weight:800;font-size:21px;letter-spacing:-.02em;margin-top:4px">{{ item.price }}<span style="font-size:14px;font-weight:700">원</span></div>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+        </div>
+      </sc-if>
+
+      <!-- ============ RESULTS ============ -->
+      <sc-if value="{{ isResults }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:flex-start">
+          <aside style="width:296px;flex:none;padding:34px 32px;border-right:1px solid #F0F0EE">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:30px">
+              <h3 style="font-weight:800;font-size:24px;letter-spacing:-.02em;margin:0">필터</h3>
+              <span onClick="{{ resetFilters }}" style="font-weight:600;font-size:13px;color:#B0B8C1;cursor:pointer">초기화</span>
+            </div>
+            <div style="font-weight:800;font-size:13px;letter-spacing:.04em;color:#A98A14;margin-bottom:14px">가격대</div>
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <div style="display:flex;align-items:center;gap:8px;height:46px;border:1.5px solid #E5E8EB;border-radius:11px;padding:0 14px">
+                <span style="font-weight:600;font-size:13px;color:#8B95A1;flex:none">최소</span>
+                <input value="{{ priceMinText }}" onChange="{{ onMinInput }}" inputmode="numeric" style="flex:1;min-width:0;border:0;outline:none;font-weight:700;font-size:15px;color:#14110A;font-family:inherit;background:transparent;text-align:right" />
+                <span style="font-weight:600;font-size:13px;color:#8B95A1;flex:none">원</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;height:46px;border:1.5px solid #E5E8EB;border-radius:11px;padding:0 14px">
+                <span style="font-weight:600;font-size:13px;color:#8B95A1;flex:none">최대</span>
+                <input value="{{ priceMaxText }}" onChange="{{ onMaxInput }}" inputmode="numeric" style="flex:1;min-width:0;border:0;outline:none;font-weight:700;font-size:15px;color:#14110A;font-family:inherit;background:transparent;text-align:right" />
+                <span style="font-weight:600;font-size:13px;color:#8B95A1;flex:none">원</span>
+              </div>
+            </div>
+            <div style="position:relative;height:18px;margin:18px 2px 4px">
+              <div style="position:absolute;top:6px;left:0;right:0;height:6px;background:#F0F0EE;border-radius:3px"></div>
+              <div style="position:absolute;top:6px;height:6px;background:#F5C84C;border-radius:3px;{{ fillStyle }}"></div>
+              <input type="range" class="rng" min="0" max="3000000" step="50000" value="{{ priceMin }}" onChange="{{ onMinRange }}" />
+              <input type="range" class="rng" min="0" max="3000000" step="50000" value="{{ priceMax }}" onChange="{{ onMaxRange }}" />
+            </div>
+            <div style="display:flex;justify-content:space-between;font-weight:500;font-size:11px;color:#B0B8C1;margin-top:2px"><span>0원</span><span>3,000,000원+</span></div>
+
+            <div style="height:1px;background:#F0F0EE;margin:30px 0"></div>
+            <div style="font-weight:800;font-size:13px;letter-spacing:.04em;color:#A98A14;margin-bottom:16px">검색할 마켓</div>
+            <div style="display:flex;flex-direction:column;gap:15px">
+              <sc-for list="{{ filterMarkets }}" as="m" hint-placeholder-count="5">
+                <div onClick="{{ m.onToggle }}" style="display:flex;align-items:center;gap:11px;cursor:pointer">
+                  <div style="width:22px;height:22px;border-radius:7px;{{ m.boxStyle }};display:flex;align-items:center;justify-content:center">
+                    <sc-if value="{{ m.selected }}" hint-placeholder-val="{{ true }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#F5C84C" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"></polyline></svg></sc-if>
+                  </div>
+                  <span style="flex:1;font-weight:600;font-size:14px;color:{{ m.nameColor }}">{{ m.label }}</span>
+                  <span style="font-weight:600;font-size:12px;color:#B0B8C1">{{ m.count }}</span>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="height:1px;background:#F0F0EE;margin:30px 0"></div>
+            <div style="font-weight:800;font-size:13px;letter-spacing:.04em;color:#A98A14;margin-bottom:14px">거래 지역</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <span style="padding:9px 13px;border-radius:11px;font-weight:700;font-size:13px;background:#F5C84C;color:#14110A">서울 강남구</span>
+              <span onClick="{{ menuFlash }}" style="padding:9px 13px;border-radius:11px;font-weight:600;font-size:13px;background:#F4F5F7;color:#6B7684;cursor:pointer">＋ 동네</span>
+            </div>
+
+            <div style="height:1px;background:#F0F0EE;margin:30px 0"></div>
+            <div style="font-weight:800;font-size:13px;letter-spacing:.04em;color:#A98A14;margin-bottom:14px">상품 상태</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <sc-for list="{{ conditions }}" as="c" hint-placeholder-count="3">
+                <span onClick="{{ c.onClick }}" style="padding:9px 13px;border-radius:11px;font-size:13px;cursor:pointer;{{ c.style }}">{{ c.label }}</span>
+              </sc-for>
+            </div>
+          </aside>
+
+          <main style="flex:1;min-width:0;padding:34px 48px 48px">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between">
+              <div>
+                <h2 style="font-weight:800;font-size:30px;letter-spacing:-.03em;margin:0">{{ query }}</h2>
+                <div style="font-weight:600;font-size:14px;color:#6B7684;margin-top:8px">총 <b style="color:#14110A;font-weight:800;font-size:16px">{{ totalText }}</b>건 · <span style="color:#A98A14">강남구</span> · {{ priceMinText }}~{{ priceMaxText }}원</div>
+              </div>
+              <div style="display:flex;gap:22px;font-weight:700;font-size:14px">
+                <sc-for list="{{ sorts }}" as="s" hint-placeholder-count="3">
+                  <span onClick="{{ s.onClick }}" style="padding-bottom:6px;cursor:pointer;color:{{ s.color }};border-bottom:{{ s.bb }}">{{ s.label }}</span>
+                </sc-for>
+              </div>
+            </div>
+
+            <sc-if value="{{ hasResults }}" hint-placeholder-val="{{ true }}">
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:26px 24px;margin-top:30px">
+                <sc-for list="{{ resultList }}" as="item" hint-placeholder-count="6">
+                  <div style="cursor:pointer">
+                    <div onClick="{{ item.onOpen }}" style="position:relative;height:188px;border-radius:14px;background:{{ item.thumb }}">
+                      <button onClick="{{ item.onToggleLike }}" style="position:absolute;right:12px;top:12px;width:34px;height:34px;border:0;border-radius:50%;background:{{ item.heartBg }};display:flex;align-items:center;justify-content:center;font-size:16px;color:{{ item.heartColor }};cursor:pointer">{{ item.heart }}</button>
+                    </div>
+                    <div onClick="{{ item.onOpen }}" style="display:flex;align-items:center;gap:7px;margin:13px 0 7px"><span style="padding:3px 8px;border-radius:6px;font-weight:700;font-size:11px;background:{{ item.badgeBg }};color:{{ item.badgeFg }}">{{ item.badge }}</span><span style="font-weight:500;font-size:12px;color:#8B95A1">{{ item.location }} · {{ item.postedAt }}</span></div>
+                    <div onClick="{{ item.onOpen }}" style="font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ item.title }}</div>
+                    <div onClick="{{ item.onOpen }}" style="font-weight:800;font-size:22px;letter-spacing:-.02em;margin-top:5px">{{ item.price }}<span style="font-size:14px;font-weight:700">원</span></div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:90px 0;text-align:center">
+                <div style="font-weight:700;font-size:18px;color:#333D4B">선택한 마켓에 매물이 없어요</div>
+                <div style="font-weight:500;font-size:14px;color:#8B95A1;margin-top:8px">왼쪽에서 검색할 마켓을 선택해 보세요</div>
+              </div>
+            </sc-if>
+          </main>
+        </div>
+      </sc-if>
+
+      <!-- ============ ALERTS ============ -->
+      <sc-if value="{{ isAlerts }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:40px 56px 60px;max-width:800px">
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:28px">
+            <h2 style="font-weight:800;font-size:30px;letter-spacing:-.03em;margin:0">알림</h2>
+            <span onClick="{{ markAllRead }}" style="font-weight:700;font-size:13px;color:#8B95A1;cursor:pointer">모두 읽음</span>
+          </div>
+          <div style="font-weight:800;font-size:13px;letter-spacing:.04em;color:#A98A14;margin-bottom:12px">오늘</div>
+          <div style="background:#fff;border:1px solid #F0F0EE;border-radius:18px;overflow:hidden;margin-bottom:26px">
+            <sc-for list="{{ notifToday }}" as="n" hint-placeholder-count="3">
+              <div style="display:flex;gap:13px;padding:18px 20px;border-bottom:1px solid #F6F6F4">
+                <span style="width:10px;height:10px;border-radius:50%;background:{{ n.dot }};margin-top:6px;flex:none"></span>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:700;font-size:15px">{{ n.title }}</div>
+                  <div style="font-weight:500;font-size:13.5px;color:#6B7684;margin:3px 0 5px;line-height:1.45">{{ n.desc }}</div>
+                  <div style="font-weight:500;font-size:12px;color:#B0B8C1">{{ n.time }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-weight:800;font-size:13px;letter-spacing:.04em;color:#A98A14;margin-bottom:12px">이전 알림</div>
+          <div style="background:#fff;border:1px solid #F0F0EE;border-radius:18px;overflow:hidden">
+            <sc-for list="{{ notifEarlier }}" as="n" hint-placeholder-count="2">
+              <div style="display:flex;gap:13px;padding:18px 20px;border-bottom:1px solid #F6F6F4">
+                <span style="width:10px;height:10px;border-radius:50%;background:{{ n.dot }};margin-top:6px;flex:none"></span>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:700;font-size:15px;color:#4E5968">{{ n.title }}</div>
+                  <div style="font-weight:500;font-size:13.5px;color:#8B95A1;margin:3px 0 5px;line-height:1.45">{{ n.desc }}</div>
+                  <div style="font-weight:500;font-size:12px;color:#C4CAD0">{{ n.time }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ============ WISHLIST ============ -->
+      <sc-if value="{{ isWishlist }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:40px 56px 60px">
+          <h2 style="font-weight:800;font-size:30px;letter-spacing:-.03em;margin:0 0 6px">관심목록</h2>
+          <div style="font-weight:600;font-size:14px;color:#6B7684;margin-bottom:30px">찜한 매물 <b style="color:#14110A;font-weight:800">{{ wishCount }}</b>개</div>
+          <sc-if value="{{ hasWish }}" hint-placeholder-val="{{ true }}">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:28px 24px">
+              <sc-for list="{{ wishItems }}" as="item" hint-placeholder-count="3">
+                <div style="cursor:pointer">
+                  <div onClick="{{ item.onOpen }}" style="position:relative;height:200px;border-radius:14px;background:{{ item.thumb }}">
+                    <button onClick="{{ item.onToggleLike }}" style="position:absolute;right:12px;top:12px;width:34px;height:34px;border:0;border-radius:50%;background:#FFE9E9;display:flex;align-items:center;justify-content:center;font-size:16px;color:#E8453C;cursor:pointer">♥</button>
+                  </div>
+                  <div onClick="{{ item.onOpen }}" style="display:flex;align-items:center;gap:7px;margin:13px 0 7px"><span style="padding:3px 8px;border-radius:6px;font-weight:700;font-size:11px;background:{{ item.badgeBg }};color:{{ item.badgeFg }}">{{ item.badge }}</span><span style="font-weight:500;font-size:12px;color:#8B95A1">{{ item.location }} · {{ item.postedAt }}</span></div>
+                  <div onClick="{{ item.onOpen }}" style="font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ item.title }}</div>
+                  <div onClick="{{ item.onOpen }}" style="font-weight:800;font-size:21px;letter-spacing:-.02em;margin-top:4px">{{ item.price }}<span style="font-size:14px;font-weight:700">원</span></div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ noWish }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:90px 0;text-align:center">
+              <div style="font-weight:700;font-size:18px;color:#333D4B">아직 찜한 매물이 없어요</div>
+              <div style="font-weight:500;font-size:14px;color:#8B95A1;margin-top:8px">매물 카드의 ♡ 를 눌러 관심목록에 담아 보세요</div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- ============ SALES ============ -->
+      <sc-if value="{{ isSales }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:40px 56px 60px;max-width:860px">
+          <h2 style="font-weight:800;font-size:30px;letter-spacing:-.03em;margin:0">판매내역</h2>
+          <div style="display:flex;gap:24px;margin:20px 0 26px;font-weight:700;font-size:15px">
+            <sc-for list="{{ salesTabs }}" as="t" hint-placeholder-count="2">
+              <span onClick="{{ t.onClick }}" style="padding-bottom:9px;cursor:pointer;{{ t.style }}">{{ t.label }}</span>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <sc-for list="{{ salesList }}" as="it" hint-placeholder-count="2">
+              <div style="display:flex;gap:16px;align-items:center;background:#fff;border:1px solid #F0F0EE;border-radius:16px;padding:14px">
+                <div style="width:88px;height:88px;border-radius:12px;background:{{ it.thumb }};flex:none"></div>
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px"><span style="padding:3px 9px;border-radius:7px;font-weight:700;font-size:11px;background:{{ it.statusBg }};color:{{ it.statusColor }}">{{ it.status }}</span><span style="padding:3px 8px;border-radius:6px;font-weight:700;font-size:11px;background:{{ it.badgeBg }};color:{{ it.badgeFg }}">{{ it.badge }}</span></div>
+                  <div style="font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ it.title }}</div>
+                  <div style="font-weight:800;font-size:18px;letter-spacing:-.02em;margin-top:3px">{{ it.price }}<span style="font-size:13px;font-weight:700">원</span></div>
+                </div>
+                <div style="flex:none;text-align:right">
+                  <div style="font-weight:600;font-size:12.5px;color:#8B95A1">채팅 {{ it.chats }} · 찜 {{ it.likes }} · 조회 {{ it.views }}</div>
+                  <div style="font-weight:500;font-size:12px;color:#B0B8C1;margin-top:5px">{{ it.date }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ============ PRICE ALERTS ============ -->
+      <sc-if value="{{ isPriceAlerts }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:40px 56px 60px;max-width:720px;margin:0 auto">
+          <div style="display:flex;align-items:flex-end;justify-content:space-between">
+            <h2 style="font-weight:800;font-size:30px;letter-spacing:-.03em;margin:0">가격 알림</h2>
+            <button onClick="{{ openAlertForm }}" style="height:42px;padding:0 18px;border:0;border-radius:11px;background:#14110A;color:#fff;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit">＋ 새 알림</button>
+          </div>
+          <p style="font-weight:500;font-size:14.5px;color:#6B7684;margin:12px 0 28px;line-height:1.5">설정한 가격 이하로 매물이 올라오면 바로 알려드려요. 키워드와 마켓을 조합해 원하는 조건을 만들어 보세요.</p>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <sc-for list="{{ priceRuleList }}" as="r" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:18px;background:#fff;border:1px solid #F0F0EE;border-radius:16px;padding:20px 22px">
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:700;font-size:16px">{{ r.keyword }}</div>
+                  <div style="font-weight:500;font-size:13.5px;color:#6B7684;margin-top:5px">목표가 <b style="color:#14110A;font-weight:700">{{ r.targetText }}</b> · {{ r.marketText }}</div>
+                </div>
+                <span style="font-weight:700;font-size:12px;color:{{ r.stateColor }}">{{ r.stateText }}</span>
+                <div onClick="{{ r.onToggle }}" style="position:relative;width:48px;height:27px;border-radius:14px;cursor:pointer;transition:background .15s;{{ r.toggleStyle }}">
+                  <div style="position:absolute;top:3px;width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .15s;{{ r.knobStyle }}"></div>
+                </div>
+                <button onClick="{{ r.onDelete }}" style="width:36px;height:36px;border:0;border-radius:10px;background:#F8F8F6;display:flex;align-items:center;justify-content:center;cursor:pointer" style-hover="background:#FFECEC"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#B0B8C1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M8 6V4h8v2"></path><path d="M6 6l1 14h10l1-14"></path></svg></button>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ============ DETAIL ============ -->
+      <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:30px 56px 60px">
+          <div onClick="{{ goResults }}" style="display:inline-flex;align-items:center;gap:7px;font-weight:700;font-size:14px;color:#6B7684;cursor:pointer">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7684" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 5 8 12 15 19"></polyline></svg>
+            목록으로
+          </div>
+          <div style="display:flex;gap:48px;margin-top:22px">
+            <div style="flex:none;width:520px">
+              <div style="height:460px;border-radius:20px;background:{{ detail.thumb }}"></div>
+              <div style="display:flex;gap:12px;margin-top:14px">
+                <div style="width:84px;height:84px;border-radius:12px;background:{{ detail.thumb }};box-shadow:inset 0 0 0 2px #14110A"></div>
+                <div style="width:84px;height:84px;border-radius:12px;background:linear-gradient(135deg,#EDEDEA,#DADAD4)"></div>
+                <div style="width:84px;height:84px;border-radius:12px;background:linear-gradient(135deg,#E6E2D6,#D0C8B4)"></div>
+                <div style="width:84px;height:84px;border-radius:12px;background:linear-gradient(135deg,#DBE0EA,#C2CADB)"></div>
+              </div>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:8px"><span style="padding:4px 10px;border-radius:7px;font-weight:700;font-size:12px;background:{{ detail.badgeBg }};color:{{ detail.badgeFg }}">{{ detail.badge }}</span><span style="font-weight:500;font-size:13px;color:#8B95A1">{{ detail.location }} · {{ detail.postedAt }}</span></div>
+              <h1 style="font-weight:800;font-size:28px;letter-spacing:-.03em;line-height:1.3;margin:16px 0 0">{{ detail.title }}</h1>
+              <div style="font-weight:800;font-size:34px;letter-spacing:-.03em;margin:14px 0 0">{{ detail.price }}<span style="font-size:18px;font-weight:700">원</span></div>
+              <div style="height:1px;background:#F0F0EE;margin:26px 0"></div>
+              <div style="display:flex;align-items:center;gap:13px">
+                <div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#D9E3DC,#BFCDC4)"></div>
+                <div style="flex:1"><div style="font-weight:700;font-size:15px">믿음거래_역삼</div><div style="font-weight:500;font-size:12.5px;color:#8B95A1">매너온도 42.3°C · 응답률 98%</div></div>
+                <span onClick="{{ chat }}" style="font-weight:700;font-size:13px;color:#14110A;cursor:pointer">판매자 정보 ›</span>
+              </div>
+              <div style="height:1px;background:#F0F0EE;margin:26px 0"></div>
+              <div style="font-weight:800;font-size:13px;letter-spacing:.04em;color:#A98A14;margin-bottom:12px">상품 설명</div>
+              <p style="font-weight:500;font-size:15px;color:#4E5968;line-height:1.65;margin:0">한 달 정도 사용한 거의 새 제품입니다. 정품 박스·구성품 모두 있고 기스나 파손 없이 깨끗하게 관리했어요. 직거래는 강남역 인근에서 가능하며, 택배 거래도 환영합니다. 단순 변심 환불은 어렵습니다.</p>
+              <div style="display:flex;gap:12px;margin-top:30px">
+                <button onClick="{{ detail.onToggleLike }}" style="flex:none;width:120px;height:56px;border:1.5px solid #E5E8EB;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:15px;color:{{ detail.heartColor }};cursor:pointer;font-family:inherit">{{ detail.heart }} {{ detail.heartLabel }}</button>
+                <button onClick="{{ chat }}" style="flex:1;height:56px;border:0;border-radius:14px;background:#F5C84C;font-weight:800;font-size:16px;color:#14110A;cursor:pointer;font-family:inherit">채팅으로 거래하기</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ============ overlays ============ -->
+      <sc-if value="{{ dropdownsOpen }}" hint-placeholder-val="{{ false }}">
+        <div onClick="{{ closeOverlays }}" style="position:absolute;inset:0;z-index:8"></div>
+      </sc-if>
+
+      <sc-if value="{{ notifOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:120px;right:116px;width:330px;background:#fff;border-radius:16px;box-shadow:0 18px 48px rgba(20,17,10,.18);border:1px solid #F0F0EE;z-index:9;overflow:hidden">
+          <div style="padding:16px 18px;border-bottom:1px solid #F0F0EE;font-weight:800;font-size:15px">알림</div>
+          <sc-for list="{{ notifList }}" as="n" hint-placeholder-count="3">
+            <div style="display:flex;gap:11px;padding:14px 18px;border-bottom:1px solid #F6F6F4">
+              <span style="width:9px;height:9px;border-radius:50%;background:{{ n.dot }};margin-top:5px;flex:none"></span>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:700;font-size:13.5px">{{ n.title }}</div>
+                <div style="font-weight:500;font-size:12.5px;color:#6B7684;margin:2px 0 4px;line-height:1.4">{{ n.desc }}</div>
+                <div style="font-weight:500;font-size:11px;color:#B0B8C1">{{ n.time }}</div>
+              </div>
+            </div>
+          </sc-for>
+          <div onClick="{{ goAlerts }}" style="padding:14px;text-align:center;font-weight:700;font-size:13px;color:#8B95A1;cursor:pointer">모든 알림 보기</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ profileOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:120px;right:48px;width:238px;background:#fff;border-radius:16px;box-shadow:0 18px 48px rgba(20,17,10,.18);border:1px solid #F0F0EE;z-index:9;overflow:hidden">
+          <div style="padding:16px 18px;border-bottom:1px solid #F0F0EE;display:flex;align-items:center;gap:12px">
+            <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#F5C84C,#E5A600);color:#14110A;font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center">{{ userInitial }}</div>
+            <div><div style="font-weight:700;font-size:14px">{{ userName }}님</div><div style="font-weight:500;font-size:12px;color:#8B95A1">매너온도 36.5°C</div></div>
+          </div>
+          <div style="padding:6px 0">
+            <div onClick="{{ goWishlist }}" style="padding:11px 18px;font-weight:600;font-size:14px;color:#333D4B;cursor:pointer">관심목록</div>
+            <div onClick="{{ goSales }}" style="padding:11px 18px;font-weight:600;font-size:14px;color:#333D4B;cursor:pointer">판매내역</div>
+            <div onClick="{{ goPriceAlerts }}" style="padding:11px 18px;font-weight:600;font-size:14px;color:#333D4B;cursor:pointer">가격알림 설정</div>
+            <div style="height:1px;background:#F0F0EE;margin:6px 0"></div>
+            <div onClick="{{ logout }}" style="padding:11px 18px;font-weight:600;font-size:14px;color:#E8453C;cursor:pointer">로그아웃</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- auth modal -->
+      <sc-if value="{{ authOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;z-index:20;background:rgba(20,17,10,.45);display:flex;align-items:center;justify-content:center">
+          <div style="width:420px;background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.32)">
+            <div style="padding:26px 30px 0;display:flex;align-items:center;justify-content:space-between">
+              <div style="font-weight:800;font-size:22px;letter-spacing:-.03em">모아<span style="color:#E5A600">서치</span></div>
+              <button onClick="{{ closeAuth }}" style="width:34px;height:34px;border:0;border-radius:50%;background:#F4F5F7;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7684" stroke-width="2.2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"></line><line x1="18" y1="6" x2="6" y2="18"></line></svg></button>
+            </div>
+            <div style="display:flex;gap:24px;padding:22px 30px 0">
+              <span onClick="{{ setLogin }}" style="font-weight:800;font-size:16px;padding-bottom:12px;cursor:pointer;{{ loginTabStyle }}">로그인</span>
+              <span onClick="{{ setSignup }}" style="font-weight:800;font-size:16px;padding-bottom:12px;cursor:pointer;{{ signupTabStyle }}">회원가입</span>
+            </div>
+            <div style="height:1px;background:#F0F0EE"></div>
+            <div style="padding:24px 30px 30px">
+              <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-bottom:14px"><div style="font-weight:600;font-size:12.5px;color:#8B95A1;margin-bottom:7px">닉네임</div><input placeholder="모아서치에서 쓸 이름" style="width:100%;height:48px;border:1.5px solid #E5E8EB;border-radius:12px;padding:0 14px;font-size:14px;font-family:inherit;outline:none" /></div>
+              </sc-if>
+              <div style="margin-bottom:14px"><div style="font-weight:600;font-size:12.5px;color:#8B95A1;margin-bottom:7px">이메일</div><input placeholder="you@example.com" style="width:100%;height:48px;border:1.5px solid #E5E8EB;border-radius:12px;padding:0 14px;font-size:14px;font-family:inherit;outline:none" /></div>
+              <div style="margin-bottom:14px"><div style="font-weight:600;font-size:12.5px;color:#8B95A1;margin-bottom:7px">비밀번호</div><input type="password" placeholder="••••••••" style="width:100%;height:48px;border:1.5px solid #E5E8EB;border-radius:12px;padding:0 14px;font-size:14px;font-family:inherit;outline:none" /></div>
+              <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-bottom:14px"><div style="font-weight:600;font-size:12.5px;color:#8B95A1;margin-bottom:7px">비밀번호 확인</div><input type="password" placeholder="••••••••" style="width:100%;height:48px;border:1.5px solid #E5E8EB;border-radius:12px;padding:0 14px;font-size:14px;font-family:inherit;outline:none" /></div>
+              </sc-if>
+              <button onClick="{{ submitAuth }}" style="width:100%;height:54px;border:0;border-radius:14px;background:#F5C84C;font-weight:800;font-size:16px;color:#14110A;cursor:pointer;font-family:inherit;margin-top:6px">{{ authBtnLabel }}</button>
+              <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+                <div style="text-align:center;margin-top:16px;font-weight:500;font-size:13px;color:#8B95A1">계정이 없으신가요? <span onClick="{{ setSignup }}" style="font-weight:700;color:#14110A;cursor:pointer">회원가입</span></div>
+              </sc-if>
+              <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}">
+                <div style="text-align:center;margin-top:16px;font-weight:500;font-size:13px;color:#8B95A1">이미 계정이 있으신가요? <span onClick="{{ setLogin }}" style="font-weight:700;color:#14110A;cursor:pointer">로그인</span></div>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- price alert form modal -->
+      <sc-if value="{{ alertFormOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;z-index:20;background:rgba(20,17,10,.45);display:flex;align-items:center;justify-content:center">
+          <div style="width:460px;background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.32)">
+            <div style="padding:24px 30px 0;display:flex;align-items:center;justify-content:space-between">
+              <div style="font-weight:800;font-size:20px;letter-spacing:-.02em">가격 알림 추가</div>
+              <button onClick="{{ closeAlertForm }}" style="width:34px;height:34px;border:0;border-radius:50%;background:#F4F5F7;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7684" stroke-width="2.2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"></line><line x1="18" y1="6" x2="6" y2="18"></line></svg></button>
+            </div>
+            <div style="padding:22px 30px 30px">
+              <div style="margin-bottom:16px">
+                <div style="font-weight:600;font-size:12.5px;color:#8B95A1;margin-bottom:7px">키워드</div>
+                <input value="{{ draftKeyword }}" onChange="{{ setDraftKeyword }}" placeholder="예: 아이폰 15 프로" style="width:100%;height:48px;border:1.5px solid #E5E8EB;border-radius:12px;padding:0 14px;font-size:14px;font-family:inherit;outline:none" />
+              </div>
+              <div style="margin-bottom:18px">
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <div style="display:flex;align-items:center;gap:8px;height:48px;border:1.5px solid #E5E8EB;border-radius:12px;padding:0 14px">
+                    <span style="font-weight:600;font-size:13px;color:#8B95A1;flex:none">최소</span>
+                    <input value="{{ draftTargetMinText }}" onChange="{{ setDraftTargetMin }}" inputmode="numeric" placeholder="0" style="flex:1;min-width:0;border:0;outline:none;font-weight:700;font-size:15px;color:#14110A;font-family:inherit;background:transparent;text-align:right" />
+                    <span style="font-weight:600;font-size:13px;color:#8B95A1;flex:none">원 이상</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;height:48px;border:1.5px solid #E5E8EB;border-radius:12px;padding:0 14px">
+                    <span style="font-weight:600;font-size:13px;color:#8B95A1;flex:none">목표</span>
+                    <input value="{{ draftTargetText }}" onChange="{{ setDraftTarget }}" inputmode="numeric" placeholder="1,000,000" style="flex:1;min-width:0;border:0;outline:none;font-weight:700;font-size:15px;color:#14110A;font-family:inherit;background:transparent;text-align:right" />
+                    <span style="font-weight:600;font-size:13px;color:#8B95A1;flex:none">원 이하</span>
+                  </div>
+                </div>
+                <div style="position:relative;height:18px;margin:18px 2px 4px">
+                  <div style="position:absolute;top:6px;left:0;right:0;height:6px;background:#F0F0EE;border-radius:3px"></div>
+                  <div style="position:absolute;top:6px;height:6px;background:#F5C84C;border-radius:3px;{{ draftRangeFill }}"></div>
+                  <input type="range" class="rng" min="0" max="3000000" step="50000" value="{{ draftTargetMin }}" onChange="{{ onDraftTargetMinRange }}" />
+                  <input type="range" class="rng" min="0" max="3000000" step="50000" value="{{ draftTarget }}" onChange="{{ onDraftTargetRange }}" />
+                </div>
+                <div style="display:flex;justify-content:space-between;font-weight:500;font-size:11px;color:#B0B8C1"><span>0원</span><span>3,000,000원+</span></div>
+              </div>
+              <div style="margin-bottom:24px">
+                <div style="font-weight:600;font-size:12.5px;color:#8B95A1;margin-bottom:9px">알림 받을 마켓</div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px">
+                  <sc-for list="{{ draftMarkets }}" as="m" hint-placeholder-count="5">
+                    <span onClick="{{ m.onToggle }}" style="padding:9px 14px;border-radius:11px;font-weight:700;font-size:13.5px;cursor:pointer;transition:all .12s;{{ m.chipStyle }}">{{ m.label }}</span>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="display:flex;gap:10px">
+                <button onClick="{{ closeAlertForm }}" style="flex:none;width:110px;height:52px;border:1.5px solid #E5E8EB;border-radius:13px;background:#fff;font-weight:700;font-size:15px;color:#4E5968;cursor:pointer;font-family:inherit">취소</button>
+                <button onClick="{{ submitAlert }}" style="flex:1;height:52px;border:0;border-radius:13px;background:#F5C84C;font-weight:800;font-size:16px;color:#14110A;cursor:pointer;font-family:inherit">알림 추가하기</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- delete confirm dialog -->
+      <sc-if value="{{ confirmOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;z-index:25;background:rgba(20,17,10,.45);display:flex;align-items:center;justify-content:center">
+          <div style="width:360px;background:#fff;border-radius:20px;padding:28px 26px 22px;box-shadow:0 30px 70px rgba(0,0,0,.32)">
+            <div style="font-weight:800;font-size:18px;letter-spacing:-.02em">알림을 삭제할까요?</div>
+            <div style="font-weight:500;font-size:14px;color:#6B7684;margin:10px 0 22px;line-height:1.5">‘{{ confirmKeyword }}’ 가격 알림이 삭제돼요. 이 작업은 되돌릴 수 없어요.</div>
+            <div style="display:flex;gap:10px">
+              <button onClick="{{ cancelDelete }}" style="flex:1;height:50px;border:1.5px solid #E5E8EB;border-radius:13px;background:#fff;font-weight:700;font-size:15px;color:#4E5968;cursor:pointer;font-family:inherit">취소</button>
+              <button onClick="{{ confirmDelete }}" style="flex:1;height:50px;border:0;border-radius:13px;background:#E8453C;font-weight:800;font-size:15px;color:#fff;cursor:pointer;font-family:inherit">삭제</button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- toast -->
+      <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;bottom:28px;left:50%;transform:translateX(-50%);background:#14110A;color:#fff;padding:13px 22px;border-radius:12px;font-weight:600;font-size:14px;z-index:30;box-shadow:0 12px 30px rgba(0,0,0,.25)">{{ toast }}</div>
+      </sc-if>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    screen: 'home',
+    profileOpen: false, notifOpen: false,
+    authOpen: false, authTab: 'login',
+    loggedIn: false, userName: '김중고',
+    query: '아이폰 15 프로', searchValue: '',
+    sort: '최신순', condition: '전체',
+    priceMin: 100000, priceMax: 1500000,
+    likes: { r1: true, r3: true, t2: true },
+    saveFilter: false,
+    marketSel: { danggn: true, bunjang: true, joonggo: true, hello: false, secondwear: false },
+    detailItem: null,
+    salesTab: '판매중',
+    alertFormOpen: false,
+    confirmDeleteId: null,
+    draft: { keyword: '', targetMin: '0', target: '', markets: { danggn: false, bunjang: false, joonggo: false, hello: false, secondwear: false } },
+    priceRules: [
+      { id: 'p1', keyword: '아이폰 15 프로', target: 1000000, markets: ['danggn', 'bunjang', 'joonggo'], on: true },
+      { id: 'p2', keyword: '다이슨 V12', target: 400000, markets: ['danggn', 'hello'], on: true },
+      { id: 'p3', keyword: '스탠바이미', target: 700000, markets: ['bunjang'], on: false },
+    ],
+    notifs: [
+      { id: 'n1', dot: '#F5C84C', group: '오늘', title: '가격이 내려갔어요', desc: '관심 매물 ‘다이슨 V12’ 40,000원 인하 (460,000 → 420,000원)', time: '5분 전', unread: true },
+      { id: 'n2', dot: '#2F6FE0', group: '오늘', title: '새 매물 알림', desc: '‘아이폰 15 프로’ 새 매물 12건이 올라왔어요', time: '1시간 전', unread: true },
+      { id: 'n3', dot: '#1F9D4D', group: '오늘', title: '거래 메시지', desc: '역삼동 판매자가 메시지를 보냈어요', time: '3시간 전', unread: true },
+      { id: 'n4', dot: '#6D3FD4', group: '이전', title: '찜한 매물이 팔렸어요', desc: '‘스탠바이미 2세대’가 거래 완료되었어요', time: '어제', unread: false },
+      { id: 'n5', dot: '#F4641E', group: '이전', title: '키워드 알림', desc: '‘닌텐도 스위치’ 조건에 맞는 매물이 등록됐어요', time: '2일 전', unread: false },
+    ],
+    toast: '',
+  };
+
+  SALES = [
+    { id: 'sa1', title: '아이패드 프로 11 5세대 셀룰러', price: 720000, market: 'danggn', status: '판매중', statusColor: '#1F9D4D', statusBg: '#E9F8EE', date: '3일 전 등록', chats: 4, likes: 12, views: 210, thumb: 'linear-gradient(135deg,#E2E6EA,#C9D0D7)' },
+    { id: 'sa2', title: '소니 WH-1000XM5 헤드폰', price: 280000, market: 'bunjang', status: '예약중', statusColor: '#A57E00', statusBg: '#FFF8E2', date: '6일 전 등록', chats: 9, likes: 25, views: 480, thumb: 'linear-gradient(135deg,#EBE3D2,#D8CBB2)' },
+    { id: 'sa3', title: '한샘 책상 1400 화이트', price: 90000, market: 'joonggo', status: '거래완료', statusColor: '#8B95A1', statusBg: '#F2F4F6', date: '2주 전 거래', chats: 6, likes: 8, views: 150, thumb: 'linear-gradient(135deg,#D9E3DC,#BFCDC4)' },
+    { id: 'sa4', title: '나이키 에어포스1 270mm', price: 70000, market: 'hello', status: '거래완료', statusColor: '#8B95A1', statusBg: '#F2F4F6', date: '3주 전 거래', chats: 3, likes: 5, views: 95, thumb: 'linear-gradient(135deg,#E8DCDF,#D2BEC4)' },
+  ];
+
+  MK = {
+    danggn:     { label: '당근',     full: '당근마켓', bg: '#FFF0E6', fg: '#FF6600', dot: '#FF6600', count: 412 },
+    bunjang:    { label: '번개장터', full: '번개장터', bg: '#FFECEC', fg: '#D80C18', dot: '#D80C18', count: 338 },
+    joonggo:    { label: '중고나라', full: '중고나라', bg: '#E9F8EE', fg: '#0CB650', dot: '#0CB650', count: 301 },
+    hello:      { label: '헬로마켓', full: '헬로마켓', bg: '#EAF2FF', fg: '#2F6FE0', dot: '#2F6FE0', count: 142 },
+    secondwear: { label: '세컨웨어', full: '세컨웨어', bg: '#F1ECFF', fg: '#6D3FD4', dot: '#6D3FD4', count: 91 },
+  };
+  ORDER = ['danggn', 'bunjang', 'joonggo', 'hello', 'secondwear'];
+  TREND = [
+    { id: 't1', title: '다이슨 V12 디텍트 슬림', price: 420000, market: 'danggn', location: '강남구', postedAt: '10분 전', thumb: 'linear-gradient(135deg,#E2E6EA,#C9D0D7)' },
+    { id: 't2', title: '스탠바이미 2세대 풀박', price: 780000, market: 'bunjang', location: '서초구', postedAt: '25분 전', thumb: 'linear-gradient(135deg,#EBE3D2,#D8CBB2)' },
+    { id: 't3', title: '닌텐도 스위치 OLED 화이트', price: 270000, market: 'joonggo', location: '송파구', postedAt: '1시간 전', thumb: 'linear-gradient(135deg,#D9E3DC,#BFCDC4)' },
+    { id: 't4', title: '헬리녹스 체어원 캠핑 의자', price: 95000, market: 'hello', location: '분당', postedAt: '2시간 전', thumb: 'linear-gradient(135deg,#E8DCDF,#D2BEC4)' },
+  ];
+  RESULTS = [
+    { id: 'r1', title: '아이폰 15 Pro 256 자연티탄 풀박', price: 1150000, market: 'danggn', location: '역삼동', postedAt: '3분 전', thumb: 'linear-gradient(135deg,#E2E6EA,#C9D0D7)', likes: 24 },
+    { id: 'r2', title: '아이폰15프로 128 블루티탄 깨끗', price: 980000, market: 'bunjang', location: '서초구', postedAt: '12분 전', thumb: 'linear-gradient(135deg,#DBE0EA,#C2CADB)', likes: 9 },
+    { id: 'r3', title: '아이폰 15 Pro 미개봉 새제품 256', price: 1290000, market: 'joonggo', location: '송파구', postedAt: '1시간 전', thumb: 'linear-gradient(135deg,#D9E3DC,#BFCDC4)', likes: 41 },
+    { id: 'r4', title: '아이폰15프로 256 잔기스 급처', price: 890000, market: 'hello', location: '강남구', postedAt: '2시간 전', thumb: 'linear-gradient(135deg,#E8DCDF,#D2BEC4)', likes: 7 },
+    { id: 'r5', title: '아이폰 15 Pro Max 교환 가능', price: 1340000, market: 'secondwear', location: '분당', postedAt: '3시간 전', thumb: 'linear-gradient(135deg,#E4E0EA,#CBC3D6)', likes: 12 },
+    { id: 'r6', title: '아이폰15프로 256 화이트티탄 풀박', price: 1090000, market: 'danggn', location: '마포구', postedAt: '4시간 전', thumb: 'linear-gradient(135deg,#E6E2D6,#D0C8B4)', likes: 18 },
+  ];
+
+  fmt = (n) => n.toLocaleString('ko-KR');
+  flash = (m) => { this.setState({ toast: m }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast: '' }), 2200); };
+
+  goHome = () => this.setState({ screen: 'home', profileOpen: false, notifOpen: false });
+  goResults = () => this.setState({ screen: 'results', profileOpen: false, notifOpen: false, searchValue: this.state.searchValue || this.state.query });
+  goAlerts = () => this.setState((s) => ({ screen: 'alerts', profileOpen: false, notifOpen: false, notifs: s.notifs.map((n) => ({ ...n, unread: false })) }));
+  goWishlist = () => this.setState({ screen: 'wishlist', profileOpen: false, notifOpen: false });
+  goSales = () => this.setState({ screen: 'sales', profileOpen: false, notifOpen: false });
+  goPriceAlerts = () => this.setState({ screen: 'priceAlerts', profileOpen: false, notifOpen: false });
+  goDetail = (item) => this.setState({ screen: 'detail', detailItem: item, profileOpen: false, notifOpen: false });
+  markAllRead = () => { this.setState((s) => ({ notifs: s.notifs.map((n) => ({ ...n, unread: false })) })); this.flash('모든 알림을 읽음 처리했어요'); };
+  setSalesTab = (t) => this.setState({ salesTab: t });
+  togglePriceRule = (id) => this.setState((s) => ({ priceRules: s.priceRules.map((r) => (r.id === id ? { ...r, on: !r.on } : r)) }));
+  openAlertForm = () => this.setState({ alertFormOpen: true, draft: { keyword: '', targetMin: '0', target: '1000000', markets: { danggn: true, bunjang: true, joonggo: false, hello: false, secondwear: false } } });
+  onDraftTargetRange = (e) => { const v = Math.max(parseInt(e.target.value, 10), parseInt(this.state.draft.targetMin || '0', 10)); this.setState((s) => ({ draft: { ...s.draft, target: String(v) } })); };
+  setDraftTargetMin = (e) => { const v = e.target.value.replace(/[^0-9]/g, ''); this.setState((s) => ({ draft: { ...s.draft, targetMin: v } })); };
+  onDraftTargetMinRange = (e) => { const v = Math.min(parseInt(e.target.value, 10), parseInt(this.state.draft.target || '3000000', 10)); this.setState((s) => ({ draft: { ...s.draft, targetMin: String(v) } })); };
+  closeAlertForm = () => this.setState({ alertFormOpen: false });
+  setDraftKeyword = (e) => { const v = e.target.value; this.setState((s) => ({ draft: { ...s.draft, keyword: v } })); };
+  setDraftTarget = (e) => { const v = e.target.value.replace(/[^0-9]/g, ''); this.setState((s) => ({ draft: { ...s.draft, target: v } })); };
+  toggleDraftMarket = (k) => this.setState((s) => ({ draft: { ...s.draft, markets: { ...s.draft.markets, [k]: !s.draft.markets[k] } } }));
+  submitAlert = () => {
+    const d = this.state.draft, kw = (d.keyword || '').trim(), won = parseInt(d.target || '0', 10), wonMin = parseInt(d.targetMin || '0', 10), mks = this.ORDER.filter((k) => d.markets[k]);
+    if (!kw) return this.flash('키워드를 입력해 주세요');
+    if (!won) return this.flash('목표 가격을 입력해 주세요');
+    if (wonMin > won) return this.flash('최소 가격이 목표 가격보다 높아요');
+    if (!mks.length) return this.flash('마켓을 1개 이상 선택해 주세요');
+    this.setState((s) => ({ priceRules: [...s.priceRules, { id: 'p' + Date.now(), keyword: kw, targetMin: wonMin, target: won, markets: mks, on: true }], alertFormOpen: false }));
+    this.flash('새 가격 알림을 추가했어요');
+  };
+  askDelete = (id) => this.setState({ confirmDeleteId: id });
+  cancelDelete = () => this.setState({ confirmDeleteId: null });
+  confirmDelete = () => { const id = this.state.confirmDeleteId; this.setState((s) => ({ priceRules: s.priceRules.filter((r) => r.id !== id), confirmDeleteId: null })); this.flash('알림을 삭제했어요'); };
+  chat = () => this.flash('판매자에게 채팅을 보냈어요');
+  toggleProfile = () => this.setState((s) => ({ profileOpen: !s.profileOpen, notifOpen: false }));
+  toggleNotif = () => this.setState((s) => ({ notifOpen: !s.notifOpen, profileOpen: false, notifs: !s.notifOpen ? s.notifs.map((n) => ({ ...n, unread: false })) : s.notifs }));
+  closeOverlays = () => this.setState({ profileOpen: false, notifOpen: false });
+  openAuth = (tab) => this.setState({ authOpen: true, authTab: tab, profileOpen: false, notifOpen: false });
+  openLogin = () => this.openAuth('login');
+  closeAuth = () => this.setState({ authOpen: false });
+  setLogin = () => this.setState({ authTab: 'login' });
+  setSignup = () => this.setState({ authTab: 'signup' });
+  submitAuth = () => { const signup = this.state.authTab === 'signup'; this.setState({ loggedIn: true, authOpen: false }); this.flash(signup ? '회원가입 완료! 환영해요' : '로그인되었어요'); };
+  logout = () => { this.setState({ loggedIn: false, profileOpen: false }); this.flash('로그아웃되었어요'); };
+  onSearchInput = (e) => this.setState({ searchValue: e.target.value });
+  onSearchKey = (e) => { if (e.key === 'Enter') this.submitSearch(); };
+  submitSearch = () => { const q = (this.state.searchValue || '').trim() || this.state.query; const n = this.ORDER.filter((k) => this.state.marketSel[k]).length; this.setState({ screen: 'results', query: q }); this.flash('선택한 ' + n + '개 마켓으로 검색했어요'); };
+  setSort = (x) => this.setState({ sort: x });
+  onMinInput = (e) => { const v = Math.min(parseInt(e.target.value.replace(/[^0-9]/g, '') || '0', 10), this.state.priceMax); this.setState({ priceMin: v }); };
+  onMaxInput = (e) => { const v = Math.min(Math.max(parseInt(e.target.value.replace(/[^0-9]/g, '') || '0', 10), this.state.priceMin), 3000000); this.setState({ priceMax: v }); };
+  onMinRange = (e) => { const v = Math.min(parseInt(e.target.value, 10), this.state.priceMax); this.setState({ priceMin: v }); };
+  onMaxRange = (e) => { const v = Math.max(parseInt(e.target.value, 10), this.state.priceMin); this.setState({ priceMax: v }); };
+  setCondition = (x) => this.setState({ condition: x });
+  toggleMarket = (k) => this.setState((s) => ({ marketSel: { ...s.marketSel, [k]: !s.marketSel[k] } }), this.persistFilter);
+  toggleAllMarkets = () => { const all = this.ORDER.every((k) => this.state.marketSel[k]); const nv = {}; this.ORDER.forEach((k) => (nv[k] = !all)); this.setState({ marketSel: nv }, this.persistFilter); };
+  toggleLike = (id) => this.setState((s) => ({ likes: { ...s.likes, [id]: !s.likes[id] } }));
+  resetFilters = () => { this.setState({ marketSel: { danggn: true, bunjang: true, joonggo: true, hello: true, secondwear: true }, condition: '전체', sort: '최신순', priceMin: 100000, priceMax: 1500000 }, this.persistFilter); this.flash('필터를 초기화했어요'); };
+
+  onToggleSave = () => this.setState((s) => ({ saveFilter: !s.saveFilter }), () => { this.persistFilter(); this.flash(this.state.saveFilter ? '이 필터를 저장했어요' : '필터 저장을 해제했어요'); });
+  persistFilter = () => {
+    try {
+      if (this.state.saveFilter) localStorage.setItem('moa.filter', JSON.stringify({ markets: this.state.marketSel, save: true }));
+      else localStorage.removeItem('moa.filter');
+    } catch (e) {}
+  };
+  componentDidMount() {
+    try {
+      const raw = localStorage.getItem('moa.filter');
+      if (raw) { const o = JSON.parse(raw); if (o && o.markets) this.setState((s) => ({ marketSel: { ...s.marketSel, ...o.markets }, saveFilter: !!o.save })); }
+    } catch (e) {}
+  }
+
+  renderVals() {
+    const s = this.state, mk = this.MK;
+    const marketsDisplay = this.ORDER.map((k) => {
+      const sel = !!s.marketSel[k];
+      return { key: k, label: mk[k].label, bg: mk[k].bg, fg: mk[k].fg, dot: mk[k].dot, selected: sel,
+        chipStyle: sel ? ('background:' + mk[k].fg + ';color:#fff') : 'background:#F4F5F7;color:#14110A',
+        onChip: () => this.toggleMarket(k) };
+    });
+    const filterMarkets = this.ORDER.map((k) => {
+      const sel = !!s.marketSel[k];
+      return { key: k, label: mk[k].full, count: mk[k].count, selected: sel,
+        boxStyle: sel ? 'background:#14110A' : 'background:transparent;border:1.8px solid #D1D6DB',
+        nameColor: sel ? '#14110A' : '#6B7684', onToggle: () => this.toggleMarket(k) };
+    });
+    const badge = (m) => ({ badge: mk[m].label, badgeBg: mk[m].bg, badgeFg: mk[m].fg });
+    const trendingList = this.TREND.map((it) => ({ id: it.id, title: it.title, price: this.fmt(it.price), thumb: it.thumb, ...badge(it.market), location: it.location, postedAt: it.postedAt, onOpen: () => this.goDetail({ ...it, ...badge(it.market) }) }));
+    let arr = this.RESULTS.filter((it) => s.marketSel[it.market]);
+    if (s.sort === '낮은 가격순') arr = [...arr].sort((a, b) => a.price - b.price);
+    if (s.sort === '인기순') arr = [...arr].sort((a, b) => (b.likes || 0) - (a.likes || 0));
+    const resultList = arr.map((it) => {
+      const liked = !!s.likes[it.id];
+      return { id: it.id, title: it.title, price: this.fmt(it.price), thumb: it.thumb, ...badge(it.market), location: it.location, postedAt: it.postedAt,
+        heart: liked ? '♥' : '♡', heartColor: liked ? '#E8453C' : '#8B95A1', heartBg: liked ? '#FFE9E9' : 'rgba(255,255,255,.88)',
+        onToggleLike: () => this.toggleLike(it.id), onOpen: () => this.goDetail({ ...it, ...badge(it.market) }) };
+    });
+    const selCount = this.ORDER.filter((k) => s.marketSel[k]).reduce((t, k) => t + mk[k].count, 0);
+    const sorts = ['최신순', '낮은 가격순', '인기순'].map((x) => ({ label: x, onClick: () => this.setSort(x), color: s.sort === x ? '#14110A' : '#B0B8C1', bb: s.sort === x ? '2.5px solid #F5C84C' : '2.5px solid transparent' }));
+    const conditions = ['전체', '새상품급', '사용감 적음'].map((x) => {
+      const a = s.condition === x;
+      return { label: x, onClick: () => this.setCondition(x), style: a ? 'background:#14110A;color:#fff;border:1.5px solid #14110A;font-weight:700' : 'background:#fff;color:#6B7684;border:1.5px solid #E5E8EB;font-weight:600' };
+    });
+    const ALL = [...this.RESULTS, ...this.TREND];
+    const wishItems = ALL.filter((it) => s.likes[it.id]).map((it) => ({ id: it.id, title: it.title, price: this.fmt(it.price), thumb: it.thumb, ...badge(it.market), location: it.location, postedAt: it.postedAt, onToggleLike: () => this.toggleLike(it.id), onOpen: () => this.goDetail({ ...it, ...badge(it.market) }) }));
+    const salesList = this.SALES.filter((it) => (s.salesTab === '판매중' ? it.status !== '거래완료' : it.status === '거래완료')).map((it) => ({ ...it, price: this.fmt(it.price), ...badge(it.market) }));
+    const salesTabs = ['판매중', '거래완료'].map((t) => ({ label: t, onClick: () => this.setSalesTab(t), style: s.salesTab === t ? 'color:#14110A;border-bottom:2.5px solid #F5C84C' : 'color:#B0B8C1;border-bottom:2.5px solid transparent' }));
+    const priceRuleList = s.priceRules.map((r) => ({ id: r.id, keyword: r.keyword, targetText: (r.targetMin ? this.fmt(r.targetMin) + '원 ~ ' + this.fmt(r.target) + '원' : this.fmt(r.target) + '원 이하'), marketText: r.markets.map((k) => mk[k].label).join(' · '), on: r.on,
+      onToggle: () => this.togglePriceRule(r.id), onDelete: () => this.askDelete(r.id), toggleStyle: r.on ? 'background:#14110A' : 'background:#D1D6DB', knobStyle: r.on ? 'left:23px' : 'left:3px', stateText: r.on ? '켜짐' : '꺼짐', stateColor: r.on ? '#14110A' : '#B0B8C1' }));
+    const draftMarkets = this.ORDER.map((k) => { const on = !!s.draft.markets[k], m = mk[k]; return { label: m.label, onToggle: () => this.toggleDraftMarket(k), chipStyle: on ? ('background:' + m.fg + ';color:#fff') : 'background:#F4F5F7;color:#14110A' }; });
+    const d = s.detailItem || {};
+    const dLiked = !!s.likes[d.id];
+    const detail = { title: d.title || '', price: d.price != null ? this.fmt(d.price) : '', badge: d.badge || '', badgeBg: d.badgeBg || '#F2F4F6', badgeFg: d.badgeFg || '#6B7684', location: d.location || '', postedAt: d.postedAt || '', thumb: d.thumb || 'linear-gradient(135deg,#E2E6EA,#C9D0D7)',
+      heart: dLiked ? '♥' : '♡', heartColor: dLiked ? '#E8453C' : '#4E5968', heartLabel: dLiked ? '찜함' : '찜하기', onToggleLike: () => this.toggleLike(d.id) };
+    return {
+      isHome: s.screen === 'home', isResults: s.screen === 'results',
+      isAlerts: s.screen === 'alerts', isWishlist: s.screen === 'wishlist', isSales: s.screen === 'sales', isPriceAlerts: s.screen === 'priceAlerts', isDetail: s.screen === 'detail',
+      notifToday: s.notifs.filter((n) => n.group === '오늘'), notifEarlier: s.notifs.filter((n) => n.group === '이전'),
+      wishItems, wishCount: wishItems.length, hasWish: wishItems.length > 0, noWish: wishItems.length === 0,
+      salesList, salesTabs, priceRuleList, draftMarkets, detail,
+      goAlerts: this.goAlerts, goWishlist: this.goWishlist, goSales: this.goSales, goPriceAlerts: this.goPriceAlerts,
+      markAllRead: this.markAllRead, chat: this.chat,
+      openAlertForm: this.openAlertForm, closeAlertForm: this.closeAlertForm, setDraftKeyword: this.setDraftKeyword, setDraftTarget: this.setDraftTarget, submitAlert: this.submitAlert,
+      alertFormOpen: s.alertFormOpen, draftKeyword: s.draft.keyword, draftTarget: s.draft.target,
+      onDraftTargetRange: this.onDraftTargetRange, setDraftTargetMin: this.setDraftTargetMin, onDraftTargetMinRange: this.onDraftTargetMinRange,
+      draftTargetMin: s.draft.targetMin,
+      draftTargetText: (parseInt(s.draft.target || '0', 10)).toLocaleString('ko-KR'),
+      draftTargetMinText: (parseInt(s.draft.targetMin || '0', 10)).toLocaleString('ko-KR'),
+      draftRangeFill: 'left:' + (Math.min(parseInt(s.draft.targetMin || '0', 10), 3000000) / 3000000 * 100) + '%;right:' + ((1 - Math.min(parseInt(s.draft.target || '0', 10), 3000000) / 3000000) * 100) + '%',
+      confirmOpen: !!s.confirmDeleteId, confirmDelete: this.confirmDelete, cancelDelete: this.cancelDelete,
+      confirmKeyword: (s.priceRules.find((r) => r.id === s.confirmDeleteId) || {}).keyword || '',
+      loggedIn: s.loggedIn, loggedOut: !s.loggedIn,
+      profileOpen: s.profileOpen, notifOpen: s.notifOpen, dropdownsOpen: s.profileOpen || s.notifOpen,
+      authOpen: s.authOpen, isLogin: s.authTab === 'login', isSignup: s.authTab === 'signup',
+      loginTabStyle: s.authTab === 'login' ? 'color:#14110A;border-bottom:2.5px solid #14110A' : 'color:#B0B8C1;border-bottom:2.5px solid transparent',
+      signupTabStyle: s.authTab === 'signup' ? 'color:#14110A;border-bottom:2.5px solid #14110A' : 'color:#B0B8C1;border-bottom:2.5px solid transparent',
+      authBtnLabel: s.authTab === 'login' ? '로그인' : '회원가입 완료',
+      hasUnread: s.notifs.some((n) => n.unread),
+      userInitial: (s.userName || 'M').charAt(0), userName: s.userName,
+      query: s.query, searchValue: s.searchValue, totalText: selCount.toLocaleString('ko-KR'),
+      priceMin: s.priceMin, priceMax: s.priceMax,
+      priceMinText: s.priceMin.toLocaleString('ko-KR'), priceMaxText: s.priceMax.toLocaleString('ko-KR'),
+      fillStyle: 'left:' + (s.priceMin / 3000000 * 100) + '%;right:' + ((1 - s.priceMax / 3000000) * 100) + '%',
+      onMinInput: this.onMinInput, onMaxInput: this.onMaxInput, onMinRange: this.onMinRange, onMaxRange: this.onMaxRange,
+      hasResults: resultList.length > 0, noResults: resultList.length === 0,
+      hasToast: !!s.toast, toast: s.toast,
+      saveFilter: s.saveFilter,
+      saveBoxStyle: s.saveFilter ? 'background:#14110A' : 'background:#fff;border:1.8px solid #D1D6DB',
+      onToggleSave: this.onToggleSave,
+      toggleAllMarkets: this.toggleAllMarkets,
+      allMarketsLabel: this.ORDER.every((k) => s.marketSel[k]) ? '전체 해제' : '전체 선택',
+      marketsDisplay, filterMarkets, trendingList, resultList, sorts, conditions, notifList: s.notifs,
+      goHome: this.goHome, goResults: this.goResults, toggleNotif: this.toggleNotif, toggleProfile: this.toggleProfile,
+      closeOverlays: this.closeOverlays, openLogin: this.openLogin, closeAuth: this.closeAuth, setLogin: this.setLogin, setSignup: this.setSignup,
+      submitAuth: this.submitAuth, logout: this.logout, onSearchInput: this.onSearchInput, onSearchKey: this.onSearchKey, submitSearch: this.submitSearch,
+      setSort: this.setSort, resetFilters: this.resetFilters, menuFlash: () => this.flash('준비 중인 기능이에요'),
+    };
+  }
+}
+</script>
+</body>
+</html>

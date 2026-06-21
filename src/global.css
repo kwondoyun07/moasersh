@@ -1,0 +1,45 @@
+/* Global styles for Moa Search — import once at your app root:
+     import './moa-search/src/global.css';
+   These rules cannot be expressed as inline React styles (pseudo-elements). */
+
+/* Dual-handle range slider thumbs (RangeSlider.tsx) */
+.moa-range {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 18px;
+  background: transparent;
+  pointer-events: none;
+  margin: 0;
+  padding: 0;
+}
+.moa-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #14110a;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  pointer-events: auto;
+}
+.moa-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #14110a;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+/* Home hero search input placeholder (Home.tsx) */
+.moa-hero-search::placeholder {
+  color: #8e897e;
+  opacity: 1;
+}
