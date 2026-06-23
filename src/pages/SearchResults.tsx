@@ -1,10 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { colors, font, radius, type MarketKey } from '../tokens';
-import { defaultFilters, searchResults, totalCount } from '../data';
+import { defaultFilters } from '../data';
 import type { Listing, SearchFilters } from '../types';
 import { ProductCard } from '../components/ProductCard';
 import { FilterSidebar } from '../components/FilterSidebar';
 import { BellIcon, CloseIcon, SearchIcon } from '../components/icons';
+import { useWishlist } from '../lib/wishlist';
+import { searchListings } from '../lib/search';
 
 const SORTS: SearchFilters['sort'][] = ['최신순', '낮은 가격순', '인기순'];
 
@@ -28,6 +30,40 @@ export const SearchResults: React.FC<Props> = ({ loggedIn, initialQuery, onHome,
     query: initialQuery?.trim() ? initialQuery.trim() : defaultFilters.query,
   }));
   const [draft, setDraft] = useState(filters.query);
+  const { isLiked, toggle } = useWishlist();
+
+  const [results, setResults] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // 검색어가 바뀌면 /api/search 를 호출해 실제 매물을 가져온다.
+  useEffect(() => {
+    let active = true;
+    async function run() {
+      const q = filters.query.trim();
+      if (!q) {
+        if (active) setResults([]);
+        return;
+      }
+      if (active) {
+        setLoading(true);
+        setError(null);
+      }
+      try {
+        const list = await searchListings(q);
+        if (active) setResults(list);
+      } catch (e) {
+        console.error(e);
+        if (active) setError('검색에 실패했어요. 잠시 후 다시 시도해 주세요.');
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    run();
+    return () => {
+      active = false;
+    };
+  }, [filters.query]);
 
   const toggleMarket = (key: MarketKey) =>
     setFilters((f) => ({ ...f, markets: f.markets.map((m) => (m.key === key ? { ...m, selected: !m.selected } : m)) }));
@@ -37,11 +73,11 @@ export const SearchResults: React.FC<Props> = ({ loggedIn, initialQuery, onHome,
   const runSearch = () => setFilters((f) => ({ ...f, query: draft.trim() || f.query }));
 
   const sorted = useMemo(() => {
-    const list = [...searchResults];
+    const list = [...results];
     if (filters.sort === '낮은 가격순') list.sort((a, b) => a.price - b.price);
     if (filters.sort === '인기순') list.sort((a, b) => (b.likes ?? 0) - (a.likes ?? 0));
     return list;
-  }, [filters.sort]);
+  }, [filters.sort, results]);
 
   return (
     <div style={{ fontFamily: font.family, color: colors.ink, background: colors.bg, width: 1440, margin: '0 auto' }}>
@@ -88,7 +124,7 @@ export const SearchResults: React.FC<Props> = ({ loggedIn, initialQuery, onHome,
             <div>
               <h2 style={{ fontWeight: 800, fontSize: 30, letterSpacing: '-.03em', margin: 0 }}>{filters.query}</h2>
               <div style={{ fontWeight: 600, fontSize: 14, color: colors.textMuted, marginTop: 8 }}>
-                총 <b style={{ color: colors.ink, fontWeight: 800, fontSize: 16 }}>{totalCount.toLocaleString('ko-KR')}</b>건 ·{' '}
+                총 <b style={{ color: colors.ink, fontWeight: 800, fontSize: 16 }}>{sorted.length.toLocaleString('ko-KR')}</b>건 ·{' '}
                 <span style={{ color: colors.gold }}>{filters.region.replace('서울 ', '')}</span> · {filters.priceMin.toLocaleString('ko-KR')}–{filters.priceMax.toLocaleString('ko-KR')}원
               </div>
             </div>
@@ -112,9 +148,33 @@ export const SearchResults: React.FC<Props> = ({ loggedIn, initialQuery, onHome,
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '26px 24px', marginTop: 30 }}>
-            {sorted.map((item) => <ProductCard key={item.id} item={item} showLike onClick={onOpenItem} />)}
-          </div>
+          {loading ? (
+            <div style={{ padding: '90px 0', textAlign: 'center', fontWeight: 600, fontSize: 15, color: colors.textFaint }}>
+              검색 중…
+            </div>
+          ) : error ? (
+            <div style={{ padding: '90px 0', textAlign: 'center', fontWeight: 600, fontSize: 15, color: '#E8453C' }}>
+              {error}
+            </div>
+          ) : sorted.length === 0 ? (
+            <div style={{ padding: '90px 0', textAlign: 'center' }}>
+              <div style={{ fontWeight: 700, fontSize: 18, color: colors.inkSoft }}>검색 결과가 없어요</div>
+              <div style={{ fontWeight: 500, fontSize: 14, color: colors.textFaint, marginTop: 8 }}>다른 검색어로 다시 시도해 보세요</div>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '26px 24px', marginTop: 30 }}>
+              {sorted.map((item) => (
+                <ProductCard
+                  key={item.id}
+                  item={item}
+                  showLike
+                  liked={isLiked(item)}
+                  onClick={onOpenItem}
+                  onToggleLike={toggle}
+                />
+              ))}
+            </div>
+          )}
         </main>
       </div>
     </div>

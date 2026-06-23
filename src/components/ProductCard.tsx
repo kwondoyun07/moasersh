@@ -25,9 +25,15 @@ const ellipsis: React.CSSProperties = {
  */
 export const ProductCard: React.FC<Props> = ({ item, showLike, liked, onClick, onToggleLike }) => {
   const { num, unit } = splitPrice(item.price);
+  // 실제 매물은 이미지 URL, 데모는 CSS 그라데이션 문자열 — 둘 다 지원.
+  const isImage = /^https?:\/\//.test(item.thumb);
+  const photoBg: React.CSSProperties = isImage
+    ? { backgroundImage: `url("${item.thumb}")`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#EEF0F2' }
+    : { background: item.thumb };
+  const meta = [item.location, item.postedAt].filter(Boolean).join(' · ');
   return (
     <div style={{ cursor: onClick ? 'pointer' : 'default' }} onClick={() => onClick?.(item)}>
-      <div style={{ position: 'relative', height: 188, borderRadius: radius.lg, background: item.thumb }}>
+      <div style={{ position: 'relative', height: 188, borderRadius: radius.lg, ...photoBg }}>
         {showLike && (
           <button
             aria-label={liked ? '관심 해제' : '관심 등록'}
@@ -47,9 +53,11 @@ export const ProductCard: React.FC<Props> = ({ item, showLike, liked, onClick, o
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, margin: '13px 0 7px' }}>
         <MarketBadge market={item.market} />
-        <span style={{ fontWeight: 500, fontSize: 12, color: colors.textFaint }}>
-          {item.location} · {item.postedAt}
-        </span>
+        {meta && (
+          <span style={{ fontWeight: 500, fontSize: 12, color: colors.textFaint }}>
+            {meta}
+          </span>
+        )}
       </div>
 
       <div style={{ ...ellipsis, fontWeight: 600, fontSize: 15, color: colors.ink }}>{item.title}</div>
