@@ -13,6 +13,8 @@ export interface Listing {
    */
   thumb: string;
   likes?: number;
+  /** 실제 매물 원본 링크. 검색 결과에서 채워지며 찜의 고유 키로 쓰인다. */
+  listingUrl?: string;
 }
 
 export interface MarketFacet {

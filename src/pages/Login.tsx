@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { colors, font, markets, type MarketKey } from '../tokens';
+import { supabase } from '../lib/supabase';
 
 const MK_ORDER: MarketKey[] = ['danggn', 'bunjang', 'joonggo', 'hello', 'secondwear'];
 
@@ -34,6 +35,7 @@ export const Login: React.FC<Props> = ({ onHome, onAuth }) => {
   const [showPw, setShowPw] = useState(false);
   const [agree, setAgree] = useState(false);
   const [toast, setToast] = useState('');
+  const [busy, setBusy] = useState(false);
   const timer = useRef<number | undefined>(undefined);
 
   const login = mode === 'login';
@@ -45,13 +47,49 @@ export const Login: React.FC<Props> = ({ onHome, onAuth }) => {
   };
   const flashSoon = () => flash('준비 중인 기능이에요');
 
-  const submit = () => {
+  // Supabase 영문 에러를 사용자용 한국어로 변환.
+  const friendly = (msg: string): string => {
+    if (/invalid login credentials/i.test(msg)) return '이메일 또는 비밀번호가 올바르지 않아요';
+    if (/already registered|already exists/i.test(msg)) return '이미 가입된 이메일이에요';
+    if (/at least 6/i.test(msg)) return '비밀번호는 6자 이상이어야 해요';
+    if (/valid email|invalid email/i.test(msg)) return '이메일 형식이 올바르지 않아요';
+    return msg;
+  };
+
+  const submit = async () => {
+    if (busy) return;
     if (!login && !nickname.trim()) return flash('닉네임을 입력해 주세요');
     if (!email.trim()) return flash('이메일을 입력해 주세요');
     if (!password) return flash('비밀번호를 입력해 주세요');
     if (!login && !agree) return flash('약관에 동의해 주세요');
-    flash(login ? '로그인되었어요' : '회원가입 완료! 환영해요');
-    window.setTimeout(() => onAuth?.(), 700);
+
+    setBusy(true);
+    try {
+      if (login) {
+        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        if (error) return flash(friendly(error.message));
+        flash('로그인되었어요');
+        window.setTimeout(() => onAuth?.(), 600);
+      } else {
+        const { data, error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: { data: { nickname: nickname.trim() } },
+        });
+        if (error) return flash(friendly(error.message));
+        if (data.session) {
+          // 이메일 인증 OFF → 즉시 로그인 상태
+          flash('회원가입 완료! 환영해요');
+          window.setTimeout(() => onAuth?.(), 600);
+        } else {
+          // 이메일 인증 ON → 메일 확인 필요
+          flash('인증 메일을 보냈어요. 메일함을 확인해 주세요');
+          setMode('login');
+        }
+      }
+    } finally {
+      setBusy(false);
+    }
   };
 
   const activeTab: React.CSSProperties = { color: colors.ink, borderBottom: `2.5px solid ${colors.ink}` };
@@ -121,8 +159,8 @@ export const Login: React.FC<Props> = ({ onHome, onAuth }) => {
             </div>
           )}
 
-          <button onClick={submit} style={{ width: '100%', height: 54, border: 0, borderRadius: 14, background: colors.yellow, fontWeight: 800, fontSize: 16, color: colors.ink, cursor: 'pointer', fontFamily: 'inherit', marginTop: 13 }}>
-            {login ? '로그인' : '회원가입 완료'}
+          <button onClick={submit} disabled={busy} style={{ width: '100%', height: 54, border: 0, borderRadius: 14, background: colors.yellow, fontWeight: 800, fontSize: 16, color: colors.ink, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1, fontFamily: 'inherit', marginTop: 13 }}>
+            {busy ? '처리 중…' : login ? '로그인' : '회원가입 완료'}
           </button>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>

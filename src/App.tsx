@@ -12,6 +12,8 @@ import { AppHeader, type NavTarget } from './components/AppHeader';
 import { allListings } from './data';
 import type { Listing } from './types';
 import { colors, font } from './tokens';
+import { useAuth } from './lib/useAuth';
+import { WishlistProvider } from './lib/wishlist';
 
 type Page = 'home' | 'search' | 'login' | 'wishlist' | 'alerts' | 'notifications' | 'detail';
 
@@ -22,7 +24,8 @@ type Page = 'home' | 'search' | 'login' | 'wishlist' | 'alerts' | 'notifications
  */
 export default function App() {
   const [page, setPage] = useState<Page>('home');
-  const [loggedIn, setLoggedIn] = useState(false);
+  const { user } = useAuth();
+  const loggedIn = !!user; // 세션에서 파생 — 새로고침해도 유지
   const [query, setQuery] = useState('아이폰 15 프로');
   const [detailItem, setDetailItem] = useState<Listing>(allListings[0]);
   const [backTo, setBackTo] = useState<Page>('search');
@@ -56,6 +59,7 @@ export default function App() {
   });
 
   return (
+    <WishlistProvider>
     <div style={{ fontFamily: font.family, color: colors.ink, background: colors.bg, minHeight: '100vh' }}>
       {page === 'home' && (
         <Home
@@ -83,7 +87,7 @@ export default function App() {
       {page === 'login' && (
         <Login
           onHome={() => setPage('home')}
-          onAuth={() => { setLoggedIn(true); setPage(returnTo); }}
+          onAuth={() => setPage(returnTo)}
         />
       )}
 
@@ -119,5 +123,6 @@ export default function App() {
         </>
       )}
     </div>
+    </WishlistProvider>
   );
 }

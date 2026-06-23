@@ -1,18 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { colors, font } from '../tokens';
-import { allListings, seededLikes } from '../data';
 import { ProductCard } from '../components/ProductCard';
+import { useWishlist } from '../lib/wishlist';
 import type { Listing } from '../types';
 
 interface Props {
   onOpen?: (item: Listing) => void;
 }
 
-/** 관심목록 — wishlist grid of liked listings. */
+/** 관심목록 — Supabase에 저장된 찜 매물 그리드. */
 export const Wishlist: React.FC<Props> = ({ onOpen }) => {
-  const [likes, setLikes] = useState<Record<string, boolean>>(seededLikes);
-  const items = allListings.filter((it) => likes[it.id]);
-  const toggle = (it: Listing) => setLikes((l) => ({ ...l, [it.id]: !l[it.id] }));
+  const { items, toggle, loading } = useWishlist();
 
   return (
     <div style={{ fontFamily: font.family, color: colors.ink, padding: '40px 56px 60px' }}>
@@ -21,7 +19,11 @@ export const Wishlist: React.FC<Props> = ({ onOpen }) => {
         찜한 매물 <b style={{ color: colors.ink, fontWeight: 800 }}>{items.length}</b>개
       </div>
 
-      {items.length > 0 ? (
+      {loading ? (
+        <div style={{ padding: '90px 0', textAlign: 'center', fontWeight: 600, fontSize: 15, color: colors.textFaint }}>
+          불러오는 중…
+        </div>
+      ) : items.length > 0 ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '28px 24px' }}>
           {items.map((it) => (
             <ProductCard key={it.id} item={it} showLike liked onClick={onOpen} onToggleLike={toggle} />
