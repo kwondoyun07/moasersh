@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { colors, font, markets, type MarketKey } from '../tokens';
-import { priceRules as defaultRules } from '../data';
 import { formatPrice, type PriceRule } from '../types';
 import { Toggle } from '../components/Toggle';
 import { RangeSlider } from '../components/RangeSlider';
 import { CloseIcon } from '../components/icons';
+import { useAuth } from '../lib/useAuth';
+import { fetchAlerts, addAlert, setAlertEnabled, removeAlert, type AlertRow } from '../lib/alerts';
 
 const MK_ORDER: MarketKey[] = ['danggn', 'bunjang', 'joonggo', 'hello', 'secondwear'];
 
@@ -22,27 +23,99 @@ const emptyDraft = (): Draft => ({
 const ruleRangeText = (r: PriceRule) =>
   r.targetMin ? `${formatPrice(r.targetMin)} ~ ${formatPrice(r.target)}` : `${formatPrice(r.target)} 이하`;
 
-/** 가격 알림 — rules with on/off, add-form modal (keyword / price range / markets) and delete confirm. */
-export const PriceAlerts: React.FC<{ rules?: PriceRule[] }> = ({ rules = defaultRules }) => {
-  const [list, setList] = useState<PriceRule[]>(rules);
+const toRule = (a: AlertRow): PriceRule => ({
+  id: a.id,
+  keyword: a.keyword,
+  targetMin: a.target_min ?? undefined,
+  target: a.target_price,
+  markets: a.markets,
+  on: a.enabled,
+});
+
+/** 가격 알림 — Supabase price_alerts 연동(목록·추가·on/off·삭제). 로그인 필요. */
+export const PriceAlerts: React.FC = () => {
+  const { user, loading: authLoading } = useAuth();
+  const [list, setList] = useState<PriceRule[]>([]);
+  const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
-  const toggle = (id: string) => setList((l) => l.map((r) => (r.id === id ? { ...r, on: !r.on } : r)));
+  // 로그인 사용자의 알림을 불러온다.
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      if (!user) {
+        if (active) {
+          setList([]);
+          setLoading(false);
+        }
+        return;
+      }
+      if (active) setLoading(true);
+      try {
+        const rows = await fetchAlerts();
+        if (active) setList(rows.map(toRule));
+      } catch (e) {
+        console.error(e);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      active = false;
+    };
+  }, [user]);
+
+  const toggle = async (id: string) => {
+    const cur = list.find((r) => r.id === id);
+    if (!cur) return;
+    setList((l) => l.map((r) => (r.id === id ? { ...r, on: !r.on } : r))); // 낙관적
+    try {
+      await setAlertEnabled(id, !cur.on);
+    } catch (e) {
+      console.error(e);
+      setList((l) => l.map((r) => (r.id === id ? { ...r, on: cur.on } : r))); // 롤백
+    }
+  };
   const openForm = () => { setDraft(emptyDraft()); setFormOpen(true); };
   const toggleDraftMarket = (k: MarketKey) => setDraft((d) => ({ ...d, markets: { ...d.markets, [k]: !d.markets[k] } }));
 
-  const submit = () => {
+  const submit = async () => {
     const kw = draft.keyword.trim();
     const mks = MK_ORDER.filter((k) => draft.markets[k]);
-    if (!kw || !draft.max || draft.min > draft.max || !mks.length) return; // validate in production with messages
-    setList((l) => [...l, { id: 'p' + Date.now(), keyword: kw, targetMin: draft.min, target: draft.max, markets: mks, on: true }]);
-    setFormOpen(false);
+    if (!kw || !draft.max || draft.min > draft.max || !mks.length || !user) return;
+    try {
+      const row = await addAlert({ keyword: kw, target_min: draft.min, target_price: draft.max, markets: mks }, user.id);
+      setList((l) => [toRule(row), ...l]);
+      setFormOpen(false);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const confirmKeyword = list.find((r) => r.id === confirmId)?.keyword ?? '';
-  const doDelete = () => { setList((l) => l.filter((r) => r.id !== confirmId)); setConfirmId(null); };
+  const doDelete = async () => {
+    const id = confirmId;
+    if (!id) return;
+    setConfirmId(null);
+    setList((l) => l.filter((r) => r.id !== id)); // 낙관적
+    try {
+      await removeAlert(id);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  if (!authLoading && !user) {
+    return (
+      <div style={{ fontFamily: font.family, color: colors.ink, padding: '80px 56px', maxWidth: 720, margin: '0 auto', textAlign: 'center' }}>
+        <h2 style={{ fontWeight: 800, fontSize: 26, letterSpacing: '-.03em' }}>가격 알림</h2>
+        <p style={{ fontWeight: 500, fontSize: 15, color: colors.textMuted, marginTop: 12 }}>로그인하면 가격 알림을 만들고 관리할 수 있어요.</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ fontFamily: font.family, color: colors.ink, padding: '40px 56px 60px', maxWidth: 720, margin: '0 auto', position: 'relative' }}>
@@ -53,6 +126,13 @@ export const PriceAlerts: React.FC<{ rules?: PriceRule[] }> = ({ rules = default
       <p style={{ fontWeight: 500, fontSize: 14.5, color: colors.textMuted, margin: '12px 0 28px', lineHeight: 1.5 }}>
         설정한 가격 범위로 매물이 올라오면 바로 알려드려요. 키워드와 마켓을 조합해 원하는 조건을 만들어 보세요.
       </p>
+
+      {loading && <div style={{ padding: '50px 0', textAlign: 'center', fontWeight: 600, fontSize: 14, color: colors.textFaint }}>불러오는 중…</div>}
+      {!loading && list.length === 0 && (
+        <div style={{ padding: '50px 0', textAlign: 'center', fontWeight: 600, fontSize: 14, color: colors.textFaint }}>
+          아직 등록한 가격 알림이 없어요. ＋ 새 알림으로 만들어 보세요.
+        </div>
+      )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {list.map((r) => (

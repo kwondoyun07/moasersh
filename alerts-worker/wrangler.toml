@@ -1,0 +1,7 @@
+name = "moasersh-alerts"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+
+# 30분마다 가격 알림 검사. 필요시 주기 조정.
+[triggers]
+crons = ["*/30 * * * *"]
