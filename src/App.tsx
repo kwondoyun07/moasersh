@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import {
   Home,
@@ -10,7 +10,6 @@ import {
   ProductDetail,
 } from './index';
 import { AppHeader, type NavTarget } from './components/AppHeader';
-import { defaultFilters } from './data';
 import type { Listing } from './types';
 import { colors, font } from './tokens';
 import { useAuth } from './lib/useAuth';
@@ -74,12 +73,7 @@ function HomeRoute({ loggedIn }: { loggedIn: boolean }) {
 function SearchRoute({ loggedIn }: { loggedIn: boolean }) {
   const nav = useNavHandlers();
   const [params, setParams] = useSearchParams();
-  const raw = params.get('q')?.trim();
-  const q = raw || defaultFilters.query;
-  // ?q 가 없으면(헤더 '통합검색' 클릭 등) 기본 검색어로 URL 을 채워 URL↔화면을 일치시킨다.
-  useEffect(() => {
-    if (!raw) setParams({ q }, { replace: true });
-  }, [raw, q, setParams]);
+  const q = params.get('q')?.trim() ?? '';
   return (
     <SearchResults
       loggedIn={loggedIn}
@@ -88,7 +82,7 @@ function SearchRoute({ loggedIn }: { loggedIn: boolean }) {
       onBell={nav.onBell}
       onLogin={nav.onLogin}
       onOpenItem={nav.openDetail}
-      onSearch={(nq) => setParams({ q: nq })}
+      onSearch={(nq) => setParams(nq ? { q: nq } : {})}
     />
   );
 }

@@ -24,7 +24,7 @@ export const Wishlist: React.FC<Props> = ({ onOpen }) => {
           불러오는 중…
         </div>
       ) : items.length > 0 ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '28px 24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: '28px 24px' }}>
           {items.map((it) => (
             <ProductCard key={it.id} item={it} showLike liked onClick={onOpen} onToggleLike={toggle} />
           ))}

@@ -57,9 +57,9 @@ export const priceRules: PriceRule[] = [
 ];
 
 export const defaultFilters: SearchFilters = {
-  query: '아이폰 15 프로',
-  priceMin: 100000,
-  priceMax: 1500000,
+  query: '',
+  priceMin: 0,            // 전체 범위 — 슬라이더로 좁히기 전엔 가격 필터가 결과를 가리지 않음
+  priceMax: 3000000,      // RangeSlider 상한과 동일(= 상한 이상은 '제한 없음'으로 처리)
   region: '서울 강남구',
   condition: '전체',
   sort: '최신순',
@@ -67,8 +67,8 @@ export const defaultFilters: SearchFilters = {
     { key: 'danggn',     count: 412, selected: true },
     { key: 'bunjang',    count: 338, selected: true },
     { key: 'joonggo',    count: 301, selected: true },
-    { key: 'hello',      count: 142, selected: false },
-    { key: 'secondwear', count: 91,  selected: false },
+    { key: 'hello',      count: 142, selected: true },
+    { key: 'secondwear', count: 91,  selected: true },
   ],
 };
 

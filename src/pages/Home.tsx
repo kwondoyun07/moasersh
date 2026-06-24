@@ -138,7 +138,7 @@ export const Home: React.FC<Props> = ({ loggedIn, onHome, onNavigate, onSearch, 
           <h2 style={{ fontWeight: 800, fontSize: 27, letterSpacing: '-.025em', margin: 0 }}>지금 뜨는 매물</h2>
           <span onClick={() => onNavigate?.('search')} style={{ fontWeight: 700, fontSize: 14, color: colors.textFaint, cursor: 'pointer' }}>전체보기 ›</span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: 24 }}>
           {trending.map((item) => <ProductCard key={item.id} item={item} onClick={onOpenItem} />)}
         </div>
       </section>
