@@ -1,5 +1,5 @@
 import React from 'react';
-import { colors, markets, radius } from '../tokens';
+import { colors, markets } from '../tokens';
 import type { SearchFilters } from '../types';
 import { CheckIcon } from './icons';
 import { RangeSlider } from './RangeSlider';
@@ -86,42 +86,6 @@ export const FilterSidebar: React.FC<Props> = ({ filters, onToggleMarket, onPric
               {counts ? (counts[f.key] ?? 0).toLocaleString('ko-KR') : f.count}
             </span>
           </div>
-        );
-      })}
-    </div>
-
-    <div style={divider} />
-
-    {/* Region */}
-    <div style={{ ...eyebrow, marginBottom: 14 }}>거래 지역</div>
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-      <span style={{ padding: '9px 13px', borderRadius: radius.md, fontWeight: 700, fontSize: 13, background: colors.yellow, color: colors.ink }}>
-        {filters.region}
-      </span>
-      <span style={{ padding: '9px 13px', borderRadius: radius.md, fontWeight: 600, fontSize: 13, background: colors.field, color: colors.textMuted }}>
-        ＋ 동네
-      </span>
-    </div>
-
-    <div style={divider} />
-
-    {/* Condition */}
-    <div style={{ ...eyebrow, marginBottom: 14 }}>상품 상태</div>
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-      {(['전체', '새상품급', '사용감 적음'] as const).map((c) => {
-        const active = filters.condition === c;
-        return (
-          <span
-            key={c}
-            style={{
-              padding: '9px 13px', borderRadius: radius.md, fontWeight: active ? 700 : 600, fontSize: 13,
-              background: active ? colors.ink : colors.bg,
-              color: active ? '#fff' : colors.textMuted,
-              border: active ? 'none' : `1.5px solid ${colors.border}`,
-            }}
-          >
-            {c}
-          </span>
         );
       })}
     </div>
