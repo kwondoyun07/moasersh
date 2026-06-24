@@ -35,7 +35,7 @@ export const Home: React.FC<Props> = ({ loggedIn, onHome, onNavigate, onSearch, 
   const submit = () => onSearch?.(query.trim());
 
   return (
-    <div style={{ fontFamily: font.family, color: colors.ink, background: colors.bg, width: 1440, margin: '0 auto' }}>
+    <div style={{ fontFamily: font.family, color: colors.ink, background: colors.bg, maxWidth: 1440, width: '100%', margin: '0 auto' }}>
       {/* top nav */}
       <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '22px 56px', borderBottom: `1px solid ${colors.line}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 44 }}>

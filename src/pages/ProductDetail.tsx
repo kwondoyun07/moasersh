@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { colors, font, markets } from '../tokens';
 import { formatPrice, type Listing } from '../types';
 
@@ -17,6 +17,8 @@ const DESC =
 /** 상품 상세 — gallery + info + seller + actions. */
 export const ProductDetail: React.FC<Props> = ({ item, liked: likedProp = false, onBack, onToggleLike, onChat }) => {
   const [liked, setLiked] = useState(likedProp);
+  // 찜 상태는 비동기로 로드/변경되므로 prop 변화를 반영(마운트 시 1회 시드만으론 부족).
+  useEffect(() => { setLiked(likedProp); }, [likedProp]);
   const m = markets[item.market];
   const toggle = () => { setLiked((v) => !v); onToggleLike?.(item); };
 

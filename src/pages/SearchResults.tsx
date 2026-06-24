@@ -17,6 +17,8 @@ interface Props {
   onBell?: () => void;
   onLogin?: () => void;
   onOpenItem?: (item: Listing) => void;
+  /** 검색 실행 시 호출 — 라우터가 URL(?q=) 을 갱신하도록. 없으면 내부 상태만 갱신. */
+  onSearch?: (query: string) => void;
 }
 
 /**
@@ -24,7 +26,7 @@ interface Props {
  * State is local for demo purposes; wire `filters` to your query layer and
  * refetch `searchResults` when it changes.
  */
-export const SearchResults: React.FC<Props> = ({ loggedIn, initialQuery, onHome, onBell, onLogin, onOpenItem }) => {
+export const SearchResults: React.FC<Props> = ({ loggedIn, initialQuery, onHome, onBell, onLogin, onOpenItem, onSearch }) => {
   const [filters, setFilters] = useState<SearchFilters>(() => ({
     ...defaultFilters,
     query: initialQuery?.trim() ? initialQuery.trim() : defaultFilters.query,
@@ -35,6 +37,14 @@ export const SearchResults: React.FC<Props> = ({ loggedIn, initialQuery, onHome,
   const [results, setResults] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // URL 검색어(initialQuery)가 바뀌면(홈 검색·뒤로/앞으로 가기) 내부 상태를 동기화한다.
+  useEffect(() => {
+    const q = initialQuery?.trim();
+    if (!q) return;
+    setDraft(q);
+    setFilters((f) => (f.query === q ? f : { ...f, query: q }));
+  }, [initialQuery]);
 
   // 검색어가 바뀌면 /api/search 를 호출해 실제 매물을 가져온다.
   useEffect(() => {
@@ -70,7 +80,11 @@ export const SearchResults: React.FC<Props> = ({ loggedIn, initialQuery, onHome,
 
   const setSort = (sort: SearchFilters['sort']) => setFilters((f) => ({ ...f, sort }));
   const setPrice = (priceMin: number, priceMax: number) => setFilters((f) => ({ ...f, priceMin, priceMax }));
-  const runSearch = () => setFilters((f) => ({ ...f, query: draft.trim() || f.query }));
+  const runSearch = () => {
+    const q = draft.trim() || filters.query;
+    if (onSearch) onSearch(q);
+    else setFilters((f) => ({ ...f, query: q }));
+  };
 
   const sorted = useMemo(() => {
     const list = [...results];
@@ -80,7 +94,7 @@ export const SearchResults: React.FC<Props> = ({ loggedIn, initialQuery, onHome,
   }, [filters.sort, results]);
 
   return (
-    <div style={{ fontFamily: font.family, color: colors.ink, background: colors.bg, width: 1440, margin: '0 auto' }}>
+    <div style={{ fontFamily: font.family, color: colors.ink, background: colors.bg, maxWidth: 1440, width: '100%', margin: '0 auto' }}>
       {/* nav with search */}
       <header style={{ display: 'flex', alignItems: 'center', gap: 36, padding: '18px 56px', borderBottom: `1px solid ${colors.line}` }}>
         <div onClick={onHome} style={{ fontWeight: 800, fontSize: 22, letterSpacing: '-.03em', cursor: 'pointer' }}>

@@ -54,7 +54,7 @@ const WishlistContext = createContext<WishlistContextValue | null>(null);
 const SELECT_COLS = 'market, listing_url, title, price, thumb, location, posted_at';
 
 export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const userId = user?.id ?? null;
   const [rows, setRows] = useState<WishRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -126,9 +126,11 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const items = useMemo(() => rows.map(rowToListing), [rows]);
 
+  // 세션 복원(authLoading) 중에도 loading 을 유지해야, cold-load 시 '비로그인'으로
+  // 오판해 찜 매물 상세가 notfound 로 깜빡이는 것을 막는다.
   const value = useMemo<WishlistContextValue>(
-    () => ({ items, isLiked, toggle, loading }),
-    [items, isLiked, toggle, loading],
+    () => ({ items, isLiked, toggle, loading: authLoading || loading }),
+    [items, isLiked, toggle, authLoading, loading],
   );
 
   return <WishlistContext.Provider value={value}>{children}</WishlistContext.Provider>;

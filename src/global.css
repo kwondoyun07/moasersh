@@ -2,6 +2,13 @@
      import './moa-search/src/global.css';
    These rules cannot be expressed as inline React styles (pseudo-elements). */
 
+/* Reset — 브라우저 기본 body 여백(8px) 제거. 이게 남으면 고정폭 레이아웃에서
+   가로/세로 스크롤이 생긴다. */
+html,
+body {
+  margin: 0;
+}
+
 /* Dual-handle range slider thumbs (RangeSlider.tsx) */
 .moa-range {
   -webkit-appearance: none;

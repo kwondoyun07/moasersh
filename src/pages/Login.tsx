@@ -12,7 +12,7 @@ interface Props {
 }
 
 const field: React.CSSProperties = {
-  width: '100%', height: 50, background: colors.field, border: 0, borderRadius: 13,
+  width: '100%', boxSizing: 'border-box', height: 50, background: colors.field, border: 0, borderRadius: 13,
   padding: '0 15px', fontSize: 14.5, fontFamily: 'inherit', outline: 'none', color: colors.ink,
 };
 const label: React.CSSProperties = { fontWeight: 600, fontSize: 12.5, color: colors.textMuted, marginBottom: 8 };
@@ -96,7 +96,7 @@ export const Login: React.FC<Props> = ({ onHome, onAuth }) => {
   const idleTab: React.CSSProperties = { color: colors.textGhost, borderBottom: '2.5px solid transparent' };
 
   return (
-    <div style={{ fontFamily: font.family, minHeight: '100vh', background: colors.ink, color: colors.ink, display: 'flex', alignItems: 'center', padding: '0 8vw', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ fontFamily: font.family, minHeight: '100vh', background: colors.ink, color: colors.ink, display: 'flex', alignItems: 'center', padding: '40px 8vw', position: 'relative', overflow: 'hidden' }}>
       {/* brand panel */}
       <div style={{ flex: 1, color: '#fff', position: 'relative', zIndex: 2 }}>
         <div onClick={onHome} style={{ display: 'inline-block', fontWeight: 800, fontSize: 24, letterSpacing: '-.03em', cursor: 'pointer' }}>
